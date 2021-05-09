@@ -3,6 +3,7 @@ import numpy as np
 import os
 
 
+# NOTE: consider storing this somewhere for big games
 def generate_allowed(num=100):
   """
   Generate all allowed moves for layers of length up to num.
@@ -70,6 +71,9 @@ class Game(object):
     """
     layer_i, low, high = move
 
+    # Make layer 0-indexed
+    layer_i -= 1
+
     return (
           0 <= layer_i < len(self.layers)
           and 1 <= low <= high <= self.layers[layer_i]
@@ -80,9 +84,9 @@ class Game(object):
     Play a move.
 
     :param move: A tuple containing your move, in the format (layer_i, low_idx, high_idx), where:
-                  - layer_i is the index of the layer you want to play on.
-                  - low_idx is the index of the lowest matchstick to cross off.
-                  - high_idx is the index of the highest matchstick to cross off.
+                  - layer_i is the index of the layer you want to play on (1-indexed).
+                  - low_idx is the index of the lowest matchstick to cross off (1-indexed).
+                  - high_idx is the index of the highest matchstick to cross off (1-indexed.
     :return:
     """
     if not self.is_allowed(move):
@@ -90,6 +94,9 @@ class Game(object):
       return -1
 
     layer_i, low_idx, high_idx = move
+
+    # Make the layer 0-indexed
+    layer_i -= 1
 
     # Perform move
     active_layer = self.layers.pop(layer_i)
@@ -104,7 +111,8 @@ class Game(object):
     # Update the allowed moves
     self.update_allowed()
 
-    # Return a number saying if the game is over
+    # Return False if the game is over,
+    # and True if the game is still going
     return not not self.layers
 
 
@@ -116,7 +124,7 @@ if __name__ == "__main__":
   # print("layers", g1.layers)
   # print("allowed", g1.currently_allowed)
 
-  g1 = Game(10)
+  g1 = Game()
   state = 1
   while state:
     print(g1.layers)
@@ -124,6 +132,6 @@ if __name__ == "__main__":
     move_choice = np.random.choice(len(g1.currently_allowed[move_layer]))
     moves_here = g1.currently_allowed[move_layer]
     move_indices = moves_here[np.random.choice(len(moves_here))]
-    move = (move_layer,) + move_indices
+    move = (move_layer + 1,) + move_indices
     print("move", move)
     state = g1.play_move(move)
