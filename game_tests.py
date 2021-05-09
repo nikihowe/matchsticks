@@ -8,13 +8,17 @@ class TestGameBasics(unittest.TestCase):
     g1 = Game()
     self.assertEqual(g1.layers, [1, 3, 5, 7])
 
+    # Check tiny game
+    g2 = Game(1)
+    self.assertEqual(g2.layers, [1])
+
     # Check bigger game
-    g2 = Game(5)
-    self.assertEqual(g2.layers, [1, 3, 5, 7, 9])
+    g3 = Game(5)
+    self.assertEqual(g3.layers, [1, 3, 5, 7, 9])
 
     # Check we can't make an empty game
     with self.assertRaises(ValueError):
-      g3 = Game(0)
+      g4 = Game(0)
 
   def test_play_move(self):
     # Check basic move
@@ -31,3 +35,15 @@ class TestGameBasics(unittest.TestCase):
     g3 = Game()
     g3.play_move((3, 1, 5))
     self.assertEqual(g3.layers, [1, 3, 7])
+
+    # Check move which doesn't end the game
+    g4 = Game(2)
+    still_going = g4.play_move((1, 1, 1))
+    self.assertEqual(still_going, True)
+    self.assertEqual(g4.layers, [3])
+
+    # Check move which does end the game
+    g5 = Game(1)
+    still_going = g5.play_move((1, 1, 1))
+    self.assertEqual(still_going, False)
+    self.assertEqual(g5.layers, [])
