@@ -99,30 +99,3 @@ class Game(object):
     # Return False if the game is over,
     # and True if the game is still going
     return not not self.layers
-
-
-if __name__ == "__main__":
-  # g1 = Game(num_layers=4)
-  # print("layers", g1.layers)
-  # print("allowed", g1.currently_allowed)
-  # g1.play_move((3, 4, 4))
-  # print("layers", g1.layers)
-  # print("allowed", g1.currently_allowed)
-
-  g1 = Game()
-  state = 1
-  while state:
-    print(g1.layers)
-    move_layer = np.random.randint(len(g1.layers))
-    moves_in_layer = g1.currently_allowed[move_layer]
-
-    move_choice = np.random.choice(len(g1.currently_allowed[move_layer]))
-    move_indices = moves_in_layer[move_choice]
-    print("ml", move_layer)
-    print("mh", moves_in_layer)
-    print("mc", move_choice)
-    print("mi", move_indices)
-    raise SystemExit
-    move = (move_layer + 1,) + move_indices
-    print("move", move)
-    state = g1.play_move(move)
