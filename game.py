@@ -1,26 +1,10 @@
+# (c) Nikolaus Howe 2021
+
 import time
 import numpy as np
 import os
 
-
-# NOTE: consider storing this somewhere for big games
-def generate_allowed(num=100):
-  """
-  Generate all allowed moves for layers of length up to num.
-
-  :param num: Up to which size of layer to consider (counts even and odd).
-  :return: A list of allowed moves, in the format (low_idx, high_idx).
-            Position in the list encodes layer size - 1.
-  """
-  all_allowed = []
-  for i in range(1, num + 1):
-    # Define the allowed moves recursively
-    if i == 1:
-      allowed = [(1, 1)]
-    else:
-      allowed = all_allowed[i - 2] + [(j, i) for j in range(1, i + 1)]
-    all_allowed.append(allowed)
-  return all_allowed
+from utils import generate_allowed
 
 
 class Game(object):
@@ -42,6 +26,7 @@ class Game(object):
 
     # Generate allowed moves reference (to be used by get_allowed)
     self.allowed_reference = generate_allowed(num_layers * 2 - 1)
+    # print("starting allowed are", self.allowed_reference)
 
     # Create and populate the list of allowed moves
     self.currently_allowed = None
@@ -129,9 +114,15 @@ if __name__ == "__main__":
   while state:
     print(g1.layers)
     move_layer = np.random.randint(len(g1.layers))
+    moves_in_layer = g1.currently_allowed[move_layer]
+
     move_choice = np.random.choice(len(g1.currently_allowed[move_layer]))
-    moves_here = g1.currently_allowed[move_layer]
-    move_indices = moves_here[np.random.choice(len(moves_here))]
+    move_indices = moves_in_layer[move_choice]
+    print("ml", move_layer)
+    print("mh", moves_in_layer)
+    print("mc", move_choice)
+    print("mi", move_indices)
+    raise SystemExit
     move = (move_layer + 1,) + move_indices
     print("move", move)
     state = g1.play_move(move)
