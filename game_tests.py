@@ -1,5 +1,9 @@
+# (c) Nikolaus Howe 2021
+
 import unittest
 from game import Game
+from player import TrivialPlayer, RandomPlayer
+from arena import Arena
 
 
 class TestGameBasics(unittest.TestCase):
@@ -47,3 +51,39 @@ class TestGameBasics(unittest.TestCase):
     still_going = g5.play_move((1, 1, 1))
     self.assertEqual(still_going, False)
     self.assertEqual(g5.layers, [])
+
+
+class TestPlayer(unittest.TestCase):
+  def test_simple_player(self):
+    g1 = Game()
+    p1 = TrivialPlayer()
+    self.assertEqual(p1.move(game=g1), (1, 1, 1))
+
+
+class TestArena(unittest.TestCase):
+  def test_simple_arena(self):
+    g1 = Game()
+    p1 = TrivialPlayer("TrivialAlice")
+    p2 = TrivialPlayer("TrivialBob")
+    a1 = Arena(g1, p1, p2, verbose=False)
+    a1.play()
+    self.assertEqual(g1.layers, [])
+
+  def test_random_game(self):
+    g2 = Game()
+    p1 = RandomPlayer("RandomAlice")
+    p2 = RandomPlayer("RandomBob")
+    a2 = Arena(g2, p1, p2, verbose=False)
+    a2.play()
+    self.assertEqual(g2.layers, [])
+
+  def test_trivial_vs_random(self):
+    g3 = Game()
+    p1 = TrivialPlayer("TrivialAlice")
+    p2 = RandomPlayer("RandomBob")
+    a3 = Arena(g3, p1, p2, verbose=False)
+    a3.play()
+    self.assertEqual(g3.layers, [])
+
+
+
