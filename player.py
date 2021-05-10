@@ -59,3 +59,27 @@ class RandomPlayer(Player):
   @overrides
   def move(self, game):
     return get_random_move(game.get_allowed())
+
+
+# class MCPlayer(Player):
+  """
+  An on-policy first-visit MC control player.
+  """
+
+  # @overrides
+  # def __init__(self, name='Alice'):
+  #   super().__init__()
+  #
+  #   self.Q = {}  # {game state : [[move_0, value_0], ..., [move_k, value_k]]}
+  #   self.returns = {}
+  #   self.eps = 0.05
+
+  # @overrides
+  # def move(self, game):
+  #   # Check if we have seen this state before
+  #   # If we haven't initialize the Q table for that state
+  #   if not game.levels in self.Q:
+  #     self.Q[game.levels.copy()] =
+  #
+  #
+  #   return 1, 1, 1
