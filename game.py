@@ -28,13 +28,6 @@ class Game(object):
     self.allowed_reference = generate_allowed(num_layers * 2 - 1)
     # print("starting allowed are", self.allowed_reference)
 
-    # Create and populate the list of allowed moves
-    self.currently_allowed = None
-    self.update_allowed()
-
-  def update_allowed(self):
-    self.currently_allowed = self.get_allowed()
-
   def get_allowed(self):
     """
     Generate the allowed moves for the given layers.
@@ -92,9 +85,6 @@ class Game(object):
     if right_result > 0:
       self.layers.append(right_result)
     self.layers.sort()
-
-    # Update the allowed moves
-    self.update_allowed()
 
     # Return False if the game is over,
     # and True if the game is still going
