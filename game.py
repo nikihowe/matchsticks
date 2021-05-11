@@ -32,12 +32,12 @@ class Game(object):
     """
     Generate the allowed moves for the given layers.
 
-    :return: A list of lists of allowed moves, in the format (low_idx, high_idx),
-              where index - 1 is the index of the layer.
+    :return: A list of lists of allowed moves, in the format (layer, low_idx, high_idx), all 1-indexed
     """
     allowed = []
-    for layer_n in self.layers:
-      allowed.append(self.allowed_reference[layer_n - 1])
+    for i, layer_n in enumerate(self.layers):
+      together = list(map(lambda tup: (i + 1,) + tup, self.allowed_reference[layer_n - 1]))
+      allowed += together
     return allowed
 
   def is_allowed(self, move):

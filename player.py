@@ -5,8 +5,6 @@ import random
 from abc import ABC, abstractmethod
 from overrides import overrides
 
-from utils import get_random_move
-
 
 class Player(ABC):
   """
@@ -58,22 +56,32 @@ class RandomPlayer(Player):
 
   @overrides
   def move(self, game):
-    return get_random_move(game.get_allowed())
+    return random.choice(game.get_allowed())
 
 
-# class MCPlayer(Player):
+class MCPlayer(Player):
   """
   An on-policy first-visit MC control player.
   """
-
-  # @overrides
-  # def __init__(self, name='Alice'):
-  #   super().__init__()
   #
-  #   self.Q = {}  # {game state : [[move_0, value_0], ..., [move_k, value_k]]}
-  #   self.returns = {}
+  # @overrides
+  # def __init__(self) -> None:
+  #   super().__init__()
+  #   self.Q = {}
+  #   self.rewards = []
   #   self.eps = 0.05
-
+  #   self.history = []
+  #
+  # def policy(self, game_word) -> int:
+  #   # Choose randomly self.eps of the time
+  #   if np.random.uniform() < self.eps:
+  #     return np.random.choice(get_possible_moves())
+  #   else:
+  #     q_row = list(self.Q[game_word].items())  # Turn the dict into a list
+  #     q_row.sort(key=lambda x: x[1], reverse=True)  # Sort in descending order
+  #     # print("sorted row is", q_row)
+  #     return q_row[0][0]  # return the move with the highest Q value
+  #
   # @overrides
   # def move(self, game):
   #   # Check if we have seen this state before

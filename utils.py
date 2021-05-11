@@ -22,10 +22,3 @@ def generate_allowed(num=100):
       allowed = all_allowed[i - 2] + [(j, i) for j in range(1, i + 1)]
     all_allowed.append(allowed)
   return all_allowed
-
-
-def get_random_move(allowed_moves):
-  move_layer = np.random.randint(len(allowed_moves))
-  move_indices = random.choice(allowed_moves[move_layer])
-  move = (move_layer + 1,) + move_indices
-  return move
