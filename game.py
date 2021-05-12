@@ -22,11 +22,11 @@ class Game(object):
       raise ValueError
 
     # Create the starting layers
-    self.layers = list(map(lambda x: x * 2 + 1, range(num_layers)))
+    self._state = list(map(lambda x: x * 2 + 1, range(num_layers)))
 
     # Generate allowed moves reference (to be used by get_allowed)
-    self.allowed_reference = generate_allowed(num_layers * 2 - 1)
-    # print("starting allowed are", self.allowed_reference)
+    self._allowed_reference = generate_allowed(num_layers * 2 - 1)
+    # print("starting allowed are", self._allowed_reference)
 
   def get_allowed(self):
     """
@@ -35,10 +35,18 @@ class Game(object):
     :return: A list of lists of allowed moves, in the format (layer, low_idx, high_idx), all 1-indexed
     """
     allowed = []
-    for i, layer_n in enumerate(self.layers):
-      together = list(map(lambda tup: (i + 1,) + tup, self.allowed_reference[layer_n - 1]))
+    for i, layer_n in enumerate(self._state):
+      together = list(map(lambda tup: (i + 1,) + tup, self._allowed_reference[layer_n - 1]))
       allowed += together
     return allowed
+
+  def get_state(self):
+    """
+    Getter method for game state
+
+    :return: hashable version of game state
+    """
+    return tuple(self._state)
 
   def is_allowed(self, move):
     """
@@ -53,8 +61,8 @@ class Game(object):
     layer_i -= 1
 
     return (
-          0 <= layer_i < len(self.layers)
-          and 1 <= low <= high <= self.layers[layer_i]
+          0 <= layer_i < len(self._state)
+          and 1 <= low <= high <= self._state[layer_i]
     )
 
   def play_move(self, move):
@@ -65,7 +73,7 @@ class Game(object):
                   - layer_i is the index of the layer you want to play on (1-indexed).
                   - low_idx is the index of the lowest matchstick to cross off (1-indexed).
                   - high_idx is the index of the highest matchstick to cross off (1-indexed.
-    :return:
+    :return: None
     """
     if not self.is_allowed(move):
       print("This is not a valid move, please try again")
@@ -77,15 +85,15 @@ class Game(object):
     layer_i -= 1
 
     # Perform move
-    active_layer = self.layers.pop(layer_i)
+    active_layer = self._state.pop(layer_i)
     left_result = low_idx - 1
     right_result = active_layer - high_idx
     if left_result > 0:
-      self.layers.append(left_result)
+      self._state.append(left_result)
     if right_result > 0:
-      self.layers.append(right_result)
-    self.layers.sort()
+      self._state.append(right_result)
+    self._state.sort()
 
     # Return False if the game is over,
     # and True if the game is still going
-    return not not self.layers
+    return not not self._state
