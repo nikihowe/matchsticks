@@ -71,7 +71,7 @@ class Agent(object):
 
     return move
 
-  def receive_reward(self, reward: int) -> None:
+  def receive_reward(self, reward: float) -> None:
     self.rewards.append(reward)
 
   def update(self) -> None:
