@@ -28,6 +28,9 @@ class Game(object):
     self._allowed_reference = generate_allowed(num_layers * 2 - 1)
     # print("starting allowed are", self._allowed_reference)
 
+  def is_still_on(self):
+    return not not self._state
+
   def get_allowed(self):
     """
     Generate the allowed moves for the given layers.
@@ -96,4 +99,4 @@ class Game(object):
 
     # Return False if the game is over,
     # and True if the game is still going
-    return not not self._state
+    return self.is_still_on()
