@@ -7,6 +7,22 @@ from abc import ABC, abstractmethod
 from overrides import overrides
 
 from game import Game
+from game_window import GameWindow
+
+
+def create_player(player_type: str):
+  if player_type == 'Trivial':
+    return TrivialPlayer('Computer')
+  elif player_type == 'Random':
+    return RandomPlayer('Computer')
+  elif player_type == 'Pretrained':
+    return PretrainedPlayer('Alice', 'Computer')
+  elif player_type == 'Human':
+    return HumanPlayer('Human')
+  elif player_type == 'VisualHuman':
+    return VisualHumanPlayer('Human')
+  else:
+    raise TypeError("That type of player is not available.")
 
 
 class Player(ABC):
@@ -38,6 +54,9 @@ class Player(ABC):
 
   def save_q(self, filename: str):
     print("Saving has not been implemented for this player")
+
+  def is_visual_human(self):
+    return isinstance(self, VisualHumanPlayer)
 
 
 class TrivialPlayer(Player):
@@ -149,7 +168,7 @@ class PretrainedPlayer(Player):
       print("The exception was", e)
 
   @overrides
-  def move(self, game: Game) -> int:
+  def move(self, game: Game) -> tuple:
     # If we've never seen this position, initialize it into the Q table
     game_state = game.get_state()
     if game_state not in self.Q:
@@ -163,7 +182,7 @@ class PretrainedPlayer(Player):
 
     return move
 
-  def policy(self, game: Game) -> int:
+  def policy(self, game: Game) -> tuple:
     q_row = list(self.Q[game.get_state()].items())  # Turn the dict into a list
     q_row.sort(key=lambda x: x[1], reverse=True)  # Sort in descending order
     # print("sorted row is", q_row)
@@ -195,3 +214,16 @@ class HumanPlayer(Player):
     )
 
     return move
+
+
+class VisualHumanPlayer(HumanPlayer):
+  @overrides
+  def __init__(self, gw: GameWindow, name='Human'):
+    self.gw = gw
+    super().__init__(name)
+
+  @overrides
+  def move(self, game: Game) -> tuple:  # TODO: remove passed game, make attribute
+    the_move = self.gw.get_human_move()
+    print("the human moved", the_move)
+    return the_move

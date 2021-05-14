@@ -17,8 +17,8 @@ class Game(object):
     """
 
     # Check for valid number of layers
-    if not 1 <= num_layers <= 100:
-      print("Please choose a number of layers between 1 and 100 inclusive")
+    if not 1 <= num_layers <= 8:
+      print("Please choose a number of layers between 1 and 8 inclusive")
       raise ValueError
 
     # Create the starting layers

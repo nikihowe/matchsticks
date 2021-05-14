@@ -1,7 +1,12 @@
 # (c) Nikolaus Howe
 
-from player import Player, TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer, HumanPlayer
+import time
+
+from overrides import overrides
+
+from player import Player, TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer, HumanPlayer, VisualHumanPlayer
 from game import Game
+from game_window import GameWindow
 
 
 class Arena(object):
@@ -57,6 +62,52 @@ class Arena(object):
       print(f"{self.next_player_to_move.name} lost!")
 
 
+class VisualArena(Arena):
+  @overrides
+  def __init__(self, game: Game, player_1: Player, player_2: Player, gw: GameWindow):
+    self.gw = gw
+    super().__init__(game, player_1, player_2)
+
+  @overrides
+  def play(self):
+    game_on = True
+    move_counter = 0
+    while game_on:
+      time.sleep(0.5)
+
+      print(self.gw.pyramid)
+      print()
+
+      # print("the next player is", self.next_player_to_move.name)
+      # Tell the human player to move
+      # if isinstance(self.next_player_to_move, VisualHumanPlayer):
+      #   print("It's the human's turn!")
+
+      # Get the active player to choose a move
+      move = self.next_player_to_move.move(self.game)
+
+      # Tell game to do the move
+      game_on = self.game.play_move(move)
+
+      # If it's a learning player, give it a reward for this move (but not on its first move)
+      if isinstance(self.next_player_to_move, MCPlayer) and move_counter >= 2:
+        self.next_player_to_move.receive_reward(0.)
+
+      # Draw the move (only draw line if not human player)
+      draw_line = not self.next_player_to_move.is_visual_human()
+      if draw_line:
+        self.gw.draw_move(move)
+
+      # Change the active player
+      self.switch_active_player()
+
+      # Increment the move counter
+      move_counter += 1
+
+    # Tell the game window that the game is over
+    self.gw.game_over(isinstance(self.next_player_to_move, VisualHumanPlayer))
+
+
 if __name__ == "__main__":
   # p1 = MCPlayer("Alice")
   # p2 = MCPlayer("Bob")
@@ -81,23 +132,43 @@ if __name__ == "__main__":
   #   p2.update()
   #   p2.end_episode()
 
-  p1 = PretrainedPlayer('Alice')
-  p2 = HumanPlayer('Niki')
+  # p1 = PretrainedPlayer('Alice')
+  # p2 = HumanPlayer('Niki')
+  #
+  # print(p1.Q)
+  # # print(p2.Q)
+  #
+  # # Make the players play deterministically (greedily)
+  # p1.eps = 0
+  # # p2.eps = 0
+  #
+  # g1 = Game()
+  # a1 = Arena(g1, p1, p2, verbose=True)
+  # a1.play()
+  #
+  # g1 = Game()
+  # a1 = Arena(g1, p2, p1, verbose=True)
+  # a1.play()
 
-  print(p1.Q)
+  # p1.save_q(p1.name)
+  # p2.save_q(p2.name)
+
+  g1 = Game(4)
+  gw = GameWindow(game=g1)
+
+  p1 = PretrainedPlayer('Alice')
+  # p1 = TrivialPlayer('Alice')
+  p2 = VisualHumanPlayer(gw, 'Niki')
+  # p2 = PretrainedPlayer('Bob')
+
+  a1 = VisualArena(g1, p1, p2, gw)
+  print("made the arena")
+
+  # print(p1.Q)
   # print(p2.Q)
 
   # Make the players play deterministically (greedily)
   p1.eps = 0
   # p2.eps = 0
 
-  g1 = Game()
-  a1 = Arena(g1, p1, p2, verbose=True)
   a1.play()
-
-  g1 = Game()
-  a1 = Arena(g1, p2, p1, verbose=True)
-  a1.play()
-
-  # p1.save_q(p1.name)
-  # p2.save_q(p2.name)
