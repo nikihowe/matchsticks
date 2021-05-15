@@ -1,15 +1,11 @@
 # (c) Nikolaus Howe 2021
 
-import time
-import numpy as np
-import os
-
 from utils import generate_allowed
+from game_types import Move
 
 
 class Game(object):
-
-  def __init__(self, num_layers=4):
+  def __init__(self, num_layers: int = 4) -> None:
     """
     A game of matchsticks.
 
@@ -22,16 +18,21 @@ class Game(object):
       raise ValueError
 
     # Create the starting layers
-    self._state = list(map(lambda x: x * 2 + 1, range(num_layers)))
+    self._state = list(map(lambda x: int(x * 2 + 1), range(num_layers)))
 
     # Generate allowed moves reference (to be used by get_allowed)
     self._allowed_reference = generate_allowed(num_layers * 2 - 1)
     # print("starting allowed are", self._allowed_reference)
 
-  def is_still_on(self):
+  def is_still_on(self) -> bool:
+    """
+    Checks whether the game is still going or not
+
+    :return: Whether or not the game is still happening
+    """
     return not not self._state
 
-  def get_allowed(self):
+  def get_allowed(self) -> list[Move]:
     """
     Generate the allowed moves for the given layers.
 
@@ -43,15 +44,15 @@ class Game(object):
       allowed += together
     return allowed
 
-  def get_state(self):
+  def get_state(self) -> tuple[int]:
     """
-    Getter method for game state
+    Getter method for game state.
 
-    :return: hashable version of game state
+    :return: 3-tuple representing the game state.
     """
     return tuple(self._state)
 
-  def is_allowed(self, move):
+  def is_allowed(self, move: Move) -> bool:
     """
     Check if a given move is valid.
 
@@ -68,7 +69,7 @@ class Game(object):
           and 1 <= low <= high <= self._state[layer_i]
     )
 
-  def play_move(self, move):
+  def play_move(self, move: Move) -> bool:
     """
     Play a move.
 
@@ -76,11 +77,10 @@ class Game(object):
                   - layer_i is the index of the layer you want to play on (1-indexed).
                   - low_idx is the index of the lowest matchstick to cross off (1-indexed).
                   - high_idx is the index of the highest matchstick to cross off (1-indexed.
-    :return: None
+    :return: whether or not the game is still going
     """
     if not self.is_allowed(move):
-      print("This is not a valid move, please try again")
-      return -1
+      raise Exception(f"The move ({move}) is not a valid move.")
 
     layer_i, low_idx, high_idx = move
 

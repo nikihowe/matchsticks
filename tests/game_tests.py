@@ -10,15 +10,15 @@ class TestGameBasics(unittest.TestCase):
   def test_game_start(self):
     # Check basic game
     g1 = Game()
-    self.assertEqual(g1.layers, [1, 3, 5, 7])
+    self.assertEqual(g1.get_state(), (1, 3, 5, 7))
 
     # Check tiny game
     g2 = Game(1)
-    self.assertEqual(g2.layers, [1])
+    self.assertEqual(g2.get_state(), (1,))
 
     # Check bigger game
     g3 = Game(5)
-    self.assertEqual(g3.layers, [1, 3, 5, 7, 9])
+    self.assertEqual(g3.get_state(), (1, 3, 5, 7, 9))
 
     # Check we can't make an empty game
     with self.assertRaises(ValueError):
@@ -28,29 +28,29 @@ class TestGameBasics(unittest.TestCase):
     # Check basic move
     g1 = Game()
     g1.play_move((3, 4, 4))
-    self.assertEqual(g1.layers, [1, 1, 3, 3, 7])
+    self.assertEqual(g1.get_state(), (1, 1, 3, 3, 7))
 
     # Check move at start of layer
     g2 = Game()
     g2.play_move((2, 1, 2))
-    self.assertEqual(g2.layers, [1, 1, 5, 7])
+    self.assertEqual(g2.get_state(), (1, 1, 5, 7))
 
     # Check move which clears whole row
     g3 = Game()
     g3.play_move((3, 1, 5))
-    self.assertEqual(g3.layers, [1, 3, 7])
+    self.assertEqual(g3.get_state(), (1, 3, 7))
 
     # Check move which doesn't end the game
     g4 = Game(2)
     still_going = g4.play_move((1, 1, 1))
     self.assertEqual(still_going, True)
-    self.assertEqual(g4.layers, [3])
+    self.assertEqual(g4.get_state(), (3,))
 
     # Check move which does end the game
     g5 = Game(1)
     still_going = g5.play_move((1, 1, 1))
     self.assertEqual(still_going, False)
-    self.assertEqual(g5.layers, [])
+    self.assertEqual(g5.get_state(), ())
 
 
 class TestPlayer(unittest.TestCase):
@@ -67,7 +67,7 @@ class TestArena(unittest.TestCase):
     p2 = TrivialPlayer("TrivialBob")
     a1 = Arena(g1, p1, p2, verbose=False)
     a1.play()
-    self.assertEqual(g1.layers, [])
+    self.assertEqual(g1.get_state(), ())
 
   def test_random_game(self):
     g2 = Game()
@@ -75,7 +75,7 @@ class TestArena(unittest.TestCase):
     p2 = RandomPlayer("RandomBob")
     a2 = Arena(g2, p1, p2, verbose=False)
     a2.play()
-    self.assertEqual(g2.layers, [])
+    self.assertEqual(g2.get_state(), ())
 
   def test_trivial_vs_random(self):
     g3 = Game()
@@ -83,7 +83,8 @@ class TestArena(unittest.TestCase):
     p2 = RandomPlayer("RandomBob")
     a3 = Arena(g3, p1, p2, verbose=False)
     a3.play()
-    self.assertEqual(g3.layers, [])
+    self.assertEqual(g3.get_state(), ())
 
 
-
+if __name__ == '__main__':
+  unittest.main()

@@ -4,32 +4,52 @@ import time
 
 from overrides import overrides
 
-from player import Player, TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer, HumanPlayer, VisualHumanPlayer
+from player import Player, MCPlayer, PretrainedPlayer, HumanPlayer, VisualHumanPlayer
 from game import Game
-from game_window import GameWindow
+from game_graphics.game_window import GameWindow
 
 
 class Arena(object):
+  def __init__(self,
+               game: Game,
+               player_1: Player,
+               player_2: Player,
+               verbose: bool = False) -> None:
+    """
+    An arena, which coordinates the players and game.
 
-  def __init__(self, game: Game, player_1: Player, player_2: Player, verbose: bool = False):
+    :param game: the game
+    :param player_1: the first player (goes first)
+    :param player_2: the second player
+    :param verbose: whether or not to print extra information
+    """
     self.game = game
     self.p1 = player_1
     self.p2 = player_2
     self.next_player_to_move = self.p1
     self.verbose = verbose
 
-  def switch_active_player(self):
+  def switch_active_player(self) -> None:
+    """
+    Change whose turn it is.
+
+    :return:
+    """
     if self.next_player_to_move == self.p1:
       self.next_player_to_move = self.p2
     else:
       self.next_player_to_move = self.p1
 
-  def play(self):
+  def play(self) -> None:
+    """
+    Run an entire game between the two players.
+
+    :return:
+    """
     game_on = True
     move_counter = 0
     while game_on:
-      if self.verbose:
-        print("Game state:", self.game.get_state())
+      print("Game state:", self.game.get_state())
 
       # Get the active player to choose a move
       move = self.next_player_to_move.move(self.game)
@@ -64,12 +84,26 @@ class Arena(object):
 
 class VisualArena(Arena):
   @overrides
-  def __init__(self, game: Game, player_1: Player, player_2: Player, gw: GameWindow):
+  def __init__(self, game: Game, player_1: Player, player_2: Player, gw: GameWindow) -> None:
+    """
+    A special arena which interfaces with a game window,
+    allowing for the game to be watched and played with a GUI.
+    :param game: the game
+    :param player_1: the first player (moves first)
+    :param player_2: the second player
+    :param gw: the game window
+    """
     self.gw = gw
     super().__init__(game, player_1, player_2)
 
   @overrides
-  def play(self):
+  def play(self) -> None:
+    """
+    Run an entire game between the two players, drawing computer moves,
+    and accepting drawn human moves.
+
+    :return:
+    """
     game_on = True
     move_counter = 0
     while game_on:
@@ -153,10 +187,10 @@ if __name__ == "__main__":
   # p1.save_q(p1.name)
   # p2.save_q(p2.name)
 
-  g1 = Game(4)
+  g1 = Game(5)
   gw = GameWindow(game=g1)
 
-  p1 = PretrainedPlayer('Alice')
+  p1 = PretrainedPlayer('trained_agents/Alice')
   # p1 = TrivialPlayer('Alice')
   p2 = VisualHumanPlayer(gw, 'Niki')
   # p2 = PretrainedPlayer('Bob')

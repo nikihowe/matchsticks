@@ -1,13 +1,10 @@
 # (c) Nikolaus Howe 2021
 
-import numpy as np
-import random
-
 import graphics as gfx
 
 
 # NOTE: consider storing this somewhere for big games
-def generate_allowed(num=100):
+def generate_allowed(num: int = 100) -> list[list[tuple[int, int]]]:
   """
   Generate all allowed moves for layers of length up to num.
 
@@ -26,7 +23,7 @@ def generate_allowed(num=100):
   return all_allowed
 
 
-def check_intersection(vertical_line: gfx.Line, other_line: gfx.Line):
+def check_intersection(vertical_line: gfx.Line, other_line: gfx.Line) -> bool:
   """
   Check for intersection between two line segments.
 
@@ -75,3 +72,18 @@ def check_intersection(vertical_line: gfx.Line, other_line: gfx.Line):
   )
 
   return they_intersect and line_is_pretty
+
+
+# def create_player(player_type: str) -> Player:
+#   if player_type == 'Trivial':
+#     return TrivialPlayer('Computer')
+#   elif player_type == 'Random':
+#     return RandomPlayer('Computer')
+#   elif player_type == 'Pretrained':
+#     return PretrainedPlayer('trained_agents/Alice', 'Computer')
+#   elif player_type == 'Human':
+#     return HumanPlayer('Human')
+#   elif player_type == 'VisualHuman':
+#     return VisualHumanPlayer(name='Human')
+#   else:
+#     raise TypeError("That type of player is not available.")

@@ -7,34 +7,22 @@ from abc import ABC, abstractmethod
 from overrides import overrides
 
 from game import Game
-from game_window import GameWindow
+from game_graphics.game_window import GameWindow
 
-
-def create_player(player_type: str):
-  if player_type == 'Trivial':
-    return TrivialPlayer('Computer')
-  elif player_type == 'Random':
-    return RandomPlayer('Computer')
-  elif player_type == 'Pretrained':
-    return PretrainedPlayer('Alice', 'Computer')
-  elif player_type == 'Human':
-    return HumanPlayer('Human')
-  elif player_type == 'VisualHuman':
-    return VisualHumanPlayer('Human')
-  else:
-    raise TypeError("That type of player is not available.")
+from game_types import Move
 
 
 class Player(ABC):
-  """
-  An abstract class for defining players
-  """
+  def __init__(self, name: str = "Alice") -> None:
+    """
+    An abstract class for defining players
 
-  def __init__(self, name: str = "Alice"):
+    :param name: the name given to this player
+    """
     self.name = name
 
   @abstractmethod
-  def move(self, game: Game):
+  def move(self, game: Game) -> Move:
     """
     Get the player to play a move among allowed_moves
 
@@ -43,19 +31,46 @@ class Player(ABC):
     """
     pass
 
-  def receive_reward(self, reward: float):
+  def receive_reward(self, reward: float) -> None:
+    """
+    Tell the player what reward they got for the turn.
+
+    :param reward: The instantaneous reward
+    :return:
+    """
     pass
 
-  def update(self):
+  def update(self) -> None:
+    """
+    Tell the player it's time to learn from the game.
+
+    :return:
+    """
     pass
 
-  def end_episode(self):
+  def end_episode(self) -> None:
+    """
+    Tell the player that the episode is over.
+
+    :return:
+    """
     pass
 
-  def save_q(self, filename: str):
+  def save_q(self, filename: str) -> None:
+    """
+    Tell the player to save their Q table
+
+    :param filename: the filename to save it as
+    :return:
+    """
     print("Saving has not been implemented for this player")
 
-  def is_visual_human(self):
+  def is_visual_human(self) -> bool:
+    """
+    Check whether or not the player is a human playing using the GUI.
+
+    :return: player is human AND player is using GUI
+    """
     return isinstance(self, VisualHumanPlayer)
 
 
@@ -65,7 +80,13 @@ class TrivialPlayer(Player):
   """
 
   @overrides
-  def move(self, game: Game):
+  def move(self, game: Game) -> Move:
+    """
+    Cross one stick off the smallest sub-row
+
+    :param game: the game
+    :return: the move
+    """
     return 1, 1, 1
 
 
@@ -75,24 +96,37 @@ class RandomPlayer(Player):
   """
 
   @overrides
-  def move(self, game: Game):
+  def move(self, game: Game) -> Move:
+    """
+    Chooses a move uniformly at random.
+
+    :param game: the game
+    :return: the move
+    """
     return random.choice(game.get_allowed())
 
 
 class MCPlayer(Player):
-  """
-  An on-policy first-visit MC control player.
-  """
-
   @overrides
   def __init__(self, name='Alice') -> None:
+    """
+    An on-policy first-visit MC control player.
+
+    :param name: name to give the player
+    """
     super().__init__(name=name)
     self.Q = {}
     self.rewards = []
     self.eps = 0.05
     self.history = []
 
-  def policy(self, game: Game) -> int:
+  def policy(self, game: Game) -> Move:
+    """
+    An epsilon-greedy policy using a Q table for state-action value estimation.
+
+    :param game: the game
+    :return: the chosen move
+    """
     # Choose randomly self.eps of the time
     if np.random.uniform() < self.eps:
       return random.choice(game.get_allowed())
@@ -103,7 +137,14 @@ class MCPlayer(Player):
       return q_row[0][0]  # return the move with the highest Q value
 
   @overrides
-  def move(self, game: Game) -> int:
+  def move(self, game: Game) -> Move:
+    """
+    Chose a move according to an epsilon-greedy policy,
+    record it in the episode history, and then play it.
+
+    :param game: the game
+    :return: the move
+    """
     # If we've never seen this position, initialize it into the Q table
     game_state = game.get_state()
     if game_state not in self.Q:
@@ -121,9 +162,21 @@ class MCPlayer(Player):
     return move
 
   def receive_reward(self, reward: float) -> None:
+    """
+    Store the reward from this timestep, to be learned from later.
+
+    :param reward: the reward at this time
+    :return:
+    """
     self.rewards.append(reward)
 
   def update(self) -> None:
+    """
+    Use the stored state-move history, and reward history, to
+    update the Q-table according to an exponential averaging approach.
+
+    :return:
+    """
     discount = 0.9
     current_return = 0.
     # print("updating")
@@ -134,17 +187,30 @@ class MCPlayer(Player):
       current_return = discount * current_return + self.rewards[i]
 
       # Check whether this state-action pair happened earlier
-      if (word, move) in self.history[:i]:
-        continue
+      # NOTE: in matchsticks, this can never happen
+      # if (word, move) in self.history[:i]:
+      #   continue
 
       # Running average
       self.Q[word][move] = self.Q[word][move] * 0.9 + 0.1 * current_return
 
   def end_episode(self) -> None:
+    """
+    Clear the state-action history and reward history,
+    to be ready for the start of the next episode.
+
+    :return:
+    """
     self.history = []
     self.rewards = []
 
-  def save_q(self, filename) -> None:
+  def save_q(self, filename: str) -> None:
+    """
+    Save the Q-table to disk, for future loading.
+
+    :param filename: what to save it as
+    :return:
+    """
     with open(filename, 'wb') as f:
       pkl.dump(self.Q, f)
 
@@ -152,14 +218,15 @@ class MCPlayer(Player):
 
 
 class PretrainedPlayer(Player):
-  """
-  A class which loads in a Q table
-  """
-
   @overrides
-  def __init__(self, q_filename, name=None):
-    del name
-    super().__init__(name=q_filename)
+  def __init__(self, q_filename: str, name: str = None) -> None:
+    """
+    Like the MCPlayer, but loads in a Q-table instead, and doesn't explore or learn.
+
+    :param q_filename: filename of the piclked Q-table
+    :param name: name to give the player
+    """
+    super().__init__(name=q_filename if not name else name)
     try:
       with open(q_filename, 'rb') as f:
         self.Q = pkl.load(f)
@@ -167,8 +234,27 @@ class PretrainedPlayer(Player):
       print(f"Couldn't load file {q_filename}.")
       print("The exception was", e)
 
+  def policy(self, game: Game) -> Move:
+    """
+    Choose a move greedily according to the Q-table.
+
+    :param game: the game
+    :return: the best move, according to the Q-table
+    """
+    q_row = list(self.Q[game.get_state()].items())  # Turn the dict into a list
+    random.shuffle(q_row)
+    q_row.sort(key=lambda x: x[1], reverse=True)  # Sort in descending order
+    # print("sorted row is", q_row)
+    return q_row[0][0]  # return the move with the highest Q value
+
   @overrides
-  def move(self, game: Game) -> tuple:
+  def move(self, game: Game) -> Move:
+    """
+    Choose a move using a greedy policy, and play it.
+
+    :param game: the game
+    :return: the move
+    """
     # If we've never seen this position, initialize it into the Q table
     game_state = game.get_state()
     if game_state not in self.Q:
@@ -182,49 +268,60 @@ class PretrainedPlayer(Player):
 
     return move
 
-  def policy(self, game: Game) -> tuple:
-    q_row = list(self.Q[game.get_state()].items())  # Turn the dict into a list
-    random.shuffle(q_row)
-    q_row.sort(key=lambda x: x[1], reverse=True)  # Sort in descending order
-    # print("sorted row is", q_row)
-    return q_row[0][0]  # return the move with the highest Q value
-
 
 class HumanPlayer(Player):
-
   @overrides
-  def __init__(self, name='Human'):
+  def __init__(self, name: str = 'Human') -> None:
+    """
+    A human player, who plays through the CLI.
+
+    :param name: the name for this player
+    """
     super().__init__(name=name)
 
   @overrides
-  def move(self, game: Game):
+  def move(self, game: Game) -> Move:
+    """
+    Ask the player for a move in the CLI.
+
+    :param game:
+    :return:
+    """
     move_str = input("Input your move in the form (layer, low, high).\n")
     try:
-      move = tuple(map(int, move_str[1:-1].split(', ')))
+      move = Move(map(int, move_str[1:-1].split(', ')))
+      if not isinstance(move, tuple):
+        raise Exception('not a tuple')
+      if not len(move) == 3:
+        raise Exception('incorrect format')
     except Exception as e:
-      print("Couldn't read your move.")
-      print("The exception was", e)
-      raise SystemExit
-
-    assert (
-      len(move) == 3
-      and isinstance(move[0], int)
-      and isinstance(move[1], int)
-      and isinstance(move[2], int)
-      and game.is_allowed(move)
-    )
+      print("Couldn't read your move. Please try again, making sure it's in the right format.")
+      print(f"By the way, the exception was '{e}'")
+      return self.move(game)
 
     return move
 
 
 class VisualHumanPlayer(HumanPlayer):
   @overrides
-  def __init__(self, gw: GameWindow, name='Human'):
+  def __init__(self, gw: GameWindow, name='Human') -> None:
+    """
+    A human player which plays through the GUI.
+
+    :param gw: the game window
+    :param name: the name for this player
+    """
     self.gw = gw
     super().__init__(name)
 
   @overrides
-  def move(self, game: Game) -> tuple:  # TODO: remove passed game, make attribute
+  def move(self, game: Game) -> Move:  # TODO: remove passed game, make attribute
+    """
+    Get a move from the human through the GUI, and play it.
+
+    :param game: the game
+    :return: the move
+    """
     the_move = self.gw.get_human_move()
-    print("the human moved", the_move)
+    # print("the human moved", the_move)
     return the_move
