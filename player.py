@@ -184,6 +184,7 @@ class PretrainedPlayer(Player):
 
   def policy(self, game: Game) -> tuple:
     q_row = list(self.Q[game.get_state()].items())  # Turn the dict into a list
+    random.shuffle(q_row)
     q_row.sort(key=lambda x: x[1], reverse=True)  # Sort in descending order
     # print("sorted row is", q_row)
     return q_row[0][0]  # return the move with the highest Q value
