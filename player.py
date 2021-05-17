@@ -40,17 +40,10 @@ class Player(ABC):
     """
     pass
 
-  def update(self) -> None:
+  def update_and_end_episode(self) -> None:
     """
-    Tell the player it's time to learn from the game.
-
-    :return:
-    """
-    pass
-
-  def end_episode(self) -> None:
-    """
-    Tell the player that the episode is over.
+    Tell the player that the game is over, and it's time to update
+    their beliefs about which moves are best.
 
     :return:
     """
@@ -149,7 +142,7 @@ class MCPlayer(Player):
     game_state = game.get_state()
     if game_state not in self.Q:
       possible_moves = game.get_allowed()
-      moves_and_values = list(map((lambda x: (x, 0.)), possible_moves))
+      moves_and_values = list(map((lambda x: (x, 0.1)), possible_moves))
       # print("setting moves and values", moves_and_values)
       self.Q[game_state] = dict(moves_and_values)
 
@@ -170,10 +163,11 @@ class MCPlayer(Player):
     """
     self.rewards.append(reward)
 
-  def update(self) -> None:
+  def update_and_end_episode(self) -> None:
     """
     Use the stored state-move history, and reward history, to
     update the Q-table according to an exponential averaging approach.
+    Then, clear the state-move history and reward history.
 
     :return:
     """
@@ -194,23 +188,20 @@ class MCPlayer(Player):
       # Running average
       self.Q[word][move] = self.Q[word][move] * 0.9 + 0.1 * current_return
 
-  def end_episode(self) -> None:
-    """
-    Clear the state-action history and reward history,
-    to be ready for the start of the next episode.
-
-    :return:
-    """
+    # End the episode by clearing histories
     self.history = []
     self.rewards = []
 
-  def save_q(self, filename: str) -> None:
+  def save_q(self, filename: str = None) -> None:
     """
     Save the Q-table to disk, for future loading.
 
     :param filename: what to save it as
     :return:
     """
+    if not filename:
+      filename = self.name
+
     with open(filename, 'wb') as f:
       pkl.dump(self.Q, f)
 

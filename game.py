@@ -1,5 +1,7 @@
 # (c) Nikolaus Howe 2021
 
+from typing import Optional, Union
+
 from utils import generate_allowed
 from game_types import Move
 
@@ -16,6 +18,9 @@ class Game(object):
     if not 1 <= num_layers <= 8:
       print("Please choose a number of layers between 1 and 8 inclusive")
       raise ValueError
+
+    # Store the number of layers so we can reset the game later
+    self._num_layers = num_layers
 
     # Create the starting layers
     self._state = list(map(lambda x: int(x * 2 + 1), range(num_layers)))
@@ -100,3 +105,15 @@ class Game(object):
     # Return False if the game is over,
     # and True if the game is still going
     return self.is_still_on()
+
+  def reset(self, position: Optional[Union[list[int], tuple[int]]] = None) -> None:
+    """
+    Reset the game to the original configuration.
+
+    :return:
+    """
+    if position:
+      self._state = list(position)
+    else:
+      self._state = list(map(lambda x: int(x * 2 + 1),
+                             range(self._num_layers)))

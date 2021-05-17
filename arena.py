@@ -14,7 +14,8 @@ class Arena(object):
                game: Game,
                player_1: Player,
                player_2: Player,
-               verbose: bool = False) -> None:
+               verbose: bool = False,
+               silent: bool = False) -> None:
     """
     An arena, which coordinates the players and game.
 
@@ -22,12 +23,14 @@ class Arena(object):
     :param player_1: the first player (goes first)
     :param player_2: the second player
     :param verbose: whether or not to print extra information
+    :param training_mode: whether or not to print the game state
     """
     self.game = game
     self.p1 = player_1
     self.p2 = player_2
     self.next_player_to_move = self.p1
     self.verbose = verbose
+    self.silent = silent
 
   def switch_active_player(self) -> None:
     """
@@ -49,7 +52,8 @@ class Arena(object):
     game_on = True
     move_counter = 0
     while game_on:
-      print("Game state:", self.game.get_state())
+      if not self.silent:
+        print("Game state:", self.game.get_state())
 
       # Get the active player to choose a move
       move = self.next_player_to_move.move(self.game)
@@ -74,10 +78,12 @@ class Arena(object):
 
     # Tell the players whether they won or lost
     self.next_player_to_move.receive_reward(1.)
+    self.next_player_to_move.update_and_end_episode()
     if self.verbose:
       print(f"{self.next_player_to_move.name} won!")
     self.switch_active_player()
     self.next_player_to_move.receive_reward(-1.)
+    self.next_player_to_move.update_and_end_episode()
     if self.verbose:
       print(f"{self.next_player_to_move.name} lost!")
 
@@ -127,10 +133,12 @@ class VisualArena(Arena):
       if isinstance(self.next_player_to_move, MCPlayer) and move_counter >= 2:
         self.next_player_to_move.receive_reward(0.)
 
-      # Draw the move (only draw line if not human player)
-      draw_line = not self.next_player_to_move.is_visual_human()
-      if draw_line:
+      # Draw the move (only draw line if not a visual human player)
+      if not self.next_player_to_move.is_visual_human():
         self.gw.draw_move(move)
+
+      # Update the pyramid to reflect that the move has been played
+      self.gw.pyramid.adjust(move)
 
       # Change the active player
       self.switch_active_player()
@@ -187,12 +195,13 @@ if __name__ == "__main__":
   # p1.save_q(p1.name)
   # p2.save_q(p2.name)
 
-  g1 = Game(5)
+  g1 = Game(4)
   gw = GameWindow(game=g1)
 
   p1 = PretrainedPlayer('trained_agents/Alice')
   # p1 = TrivialPlayer('Alice')
-  p2 = VisualHumanPlayer(gw, 'Niki')
+  p2 = HumanPlayer('Niki')
+  # p2 = HumanPlayer(gw, 'Niki')
   # p2 = PretrainedPlayer('Bob')
 
   a1 = VisualArena(g1, p1, p2, gw)

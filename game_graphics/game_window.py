@@ -103,9 +103,6 @@ class GameWindow(object):
       stick.set_inactive()
       stick.draw(stick.v_pos, stick.h_pos)
 
-    # Now, adjust pyramid according to the move
-    self.pyramid.adjust(move)
-
   def get_human_move(self) -> Move:
     """
     Let the human click on the game window, and extract a move from the clicks.
@@ -143,9 +140,6 @@ class GameWindow(object):
         stick = self.pyramid.rows[row-1].matchsticks[stick_idx-1]
         stick.set_inactive()
         stick.draw(stick.v_pos, stick.h_pos)
-
-      # Now, adjust pyramid according to the move
-      self.pyramid.adjust(move)
 
       return move
 
@@ -341,5 +335,5 @@ class Pyramid(object):
     return '\n'.join(to_ret)
 
 
-if __name__ == '__main__':
-  the_game_window = GameWindow(Game(5))
+# if __name__ == '__main__':
+#   the_game_window = GameWindow(Game(5))
