@@ -2,8 +2,10 @@
 
 import unittest
 from game import Game
-from player import TrivialPlayer, RandomPlayer
+from player import TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer
+from game_graphics.game_window import GameWindow
 from arena import Arena
+from dojo import Dojo
 
 
 class TestGameBasics(unittest.TestCase):
@@ -59,13 +61,56 @@ class TestPlayer(unittest.TestCase):
     p1 = TrivialPlayer()
     self.assertEqual(p1.move(game=g1), (1, 1, 1))
 
+  # Make sure a learning agent plays properly in certain situations,
+  # after only 10_000 games of training
+  # NOTE: failing (a) test(s) doesn't mean it isn't training, just that it isn't very good after 10_000
+  def test_MC_agent_10_000(self):
+    p1 = MCPlayer('Alice')
+    p2 = RandomPlayer()  # TODO: change into optimal player later
+    d1 = Dojo(p1, p2)
+    d1.train_players(num_games=50_000, num_layers=2)
+    # print("after training", p1.Q)
+
+    g1 = Game(2)
+    self.assertEqual(p1.move(g1), (2, 1, 3))
+
+    g2 = Game()
+    g2.reset([3])
+    player_move = p1.move(g2)
+    is_best_move_1 = player_move == (1, 1, 2)
+    is_best_move_2 = player_move == (1, 2, 3)
+    self.assertTrue(is_best_move_1 or is_best_move_2)
+
+  def test_specific_train(self):
+    p1 = MCPlayer('Alice')
+    p2 = RandomPlayer()  # TODO: change to optimal player later
+    d1 = Dojo(p1, p2)
+    position = [4]
+    d1.drill_position(num_games=50_000, position=position)
+    # print(p1.Q)
+
+    g1 = Game()
+    g1.reset(position)
+    player_move = p1.move(g1)
+    is_best_move_1 = player_move == (1, 1, 3)
+    is_best_move_2 = player_move == (1, 2, 4)
+    self.assertTrue(is_best_move_1 or is_best_move_2)
+
+  def test_save_and_load(self):
+    p1 = MCPlayer('Alice')
+    d1 = Dojo(p1)
+    d1.train_players(num_games=1000)
+    p1.save_q()
+    p2 = PretrainedPlayer(p1.name)
+    self.assertEqual(p1.Q, p2.Q)
+
 
 class TestArena(unittest.TestCase):
-  def test_simple_arena(self):
+  def test_trivial_game(self):
     g1 = Game()
     p1 = TrivialPlayer("TrivialAlice")
     p2 = TrivialPlayer("TrivialBob")
-    a1 = Arena(g1, p1, p2, verbose=False)
+    a1 = Arena(g1, p1, p2, silent=True)
     a1.play()
     self.assertEqual(g1.get_state(), ())
 
@@ -73,17 +118,65 @@ class TestArena(unittest.TestCase):
     g2 = Game()
     p1 = RandomPlayer("RandomAlice")
     p2 = RandomPlayer("RandomBob")
-    a2 = Arena(g2, p1, p2, verbose=False)
+    a2 = Arena(g2, p1, p2, silent=True)
     a2.play()
     self.assertEqual(g2.get_state(), ())
 
-  def test_trivial_vs_random(self):
+  def test_trivial_vs_random_game(self):
     g3 = Game()
     p1 = TrivialPlayer("TrivialAlice")
     p2 = RandomPlayer("RandomBob")
-    a3 = Arena(g3, p1, p2, verbose=False)
+    a3 = Arena(g3, p1, p2, silent=True)
     a3.play()
     self.assertEqual(g3.get_state(), ())
+
+
+class TestGameWindow(unittest.TestCase):
+  def test_computer_move_drawing(self):
+    g1 = Game()
+    gw = GameWindow(game=g1)
+
+    layer = 4
+    left_idx = 5
+    right_idx = 6
+    m = (layer, left_idx, right_idx)
+    gw.draw_move(m)
+
+    # For indexing, make 0-indexed
+    layer -= 1
+    left_idx -= 1
+    right_idx -= 1
+
+    self.assertTrue(gw.pyramid.rows[layer].matchsticks[left_idx-1].is_active)
+    self.assertFalse(gw.pyramid.rows[layer].matchsticks[left_idx].is_active)
+    self.assertFalse(gw.pyramid.rows[layer].matchsticks[right_idx].is_active)
+    self.assertTrue(gw.pyramid.rows[layer].matchsticks[right_idx+1].is_active)
+
+  def test_pyramid_update(self):
+    g1 = Game()
+    gw = GameWindow(game=g1)
+
+    layer = 4
+    left_idx = 5
+    right_idx = 6
+    m = (layer, left_idx, right_idx)
+    gw.pyramid.adjust(m)
+
+    # Check the rows are correct
+    self.assertEqual(len(gw.pyramid.rows), 5)
+    self.assertEqual(len(gw.pyramid.rows[0].matchsticks), 1)
+    self.assertEqual(len(gw.pyramid.rows[1].matchsticks), 1)
+    self.assertEqual(len(gw.pyramid.rows[2].matchsticks), 3)
+    self.assertEqual(len(gw.pyramid.rows[3].matchsticks), 4)
+    self.assertEqual(len(gw.pyramid.rows[4].matchsticks), 5)
+
+    # Check a matchstick
+    self.assertEqual(gw.pyramid.rows[1].matchsticks[0].layer, 2)
+    self.assertEqual(gw.pyramid.rows[1].matchsticks[0].idx, 1)
+
+  # At this point, I don't think there is a way to automatically get a move from the human
+  def test_human_move_recording(self):
+    pass
 
 
 if __name__ == '__main__':
