@@ -1,6 +1,6 @@
 # (c) Nikolaus Howe
 
-# Note that this is not a part of the bigger game, this is just a testing ground for RL agents
+# Note that this is not a part of the bigger game, this is just a testing ground for RL trained_agents
 import numpy as np
 from typing import Optional
 

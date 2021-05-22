@@ -30,6 +30,7 @@ class GameWindow(object):
     """
     self.game = game
     self.win = gfx.GraphWin("Matchsticks", width, height)
+    self.win.setCoords(0, 0, 1, 1)
     self.center = gfx.Point(width/2, height/2)
     self.v_spacing = v_spacing
     self.h_spacing = h_spacing
@@ -335,5 +336,6 @@ class Pyramid(object):
     return '\n'.join(to_ret)
 
 
-# if __name__ == '__main__':
-#   the_game_window = GameWindow(Game(5))
+if __name__ == '__main__':
+  the_game_window = GameWindow(Game(5))
+  input()
