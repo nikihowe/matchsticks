@@ -7,7 +7,7 @@ import PySimpleGUI as sg
 
 from game import Game
 from utils import check_intersection
-from game_types import Move, Line, Point
+from game_types import Move, Line
 
 
 class GameWindow(object):
@@ -46,7 +46,7 @@ class GameWindow(object):
     :param human_won: Whether or not the human won
     :return:
     """
-    # end_text = gfx.Text(gfx.Point(self.center.x/2, 4/5*self.center.y), "")
+    # end_text = gfx.Text(gfx.Point(self.center.x/2, 4/5*self.center
     # end_text.setSize(36)
     if human_won:
       print("Human wins!")
@@ -109,6 +109,13 @@ class GameWindow(object):
     self.window.refresh()
 
   def get_human_move(self):
+    """
+    Get a move from the human by listening for mouse clicks on the window.
+    If a move is detected, check to make sure it is allowed. If it is,
+    then return it; otherwise, keep waiting for a move.
+
+    :return: line segment start point, line segment end point, list of sticks with which the segment intersects
+    """
     graph = self.window['graph']
     dragging = False
     start_point = end_point = current_line = None
@@ -147,7 +154,8 @@ class GameWindow(object):
 
   def get_and_play_human_move(self) -> Move:
     """
-    Let the human click on the game window, and extract a move from the clicks.
+    Call get_human_move to extract a move from mouse clicks. Then,
+    play that move, update the drawing, and return the move.
 
     :return: the move
     """

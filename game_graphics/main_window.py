@@ -36,6 +36,24 @@ class MainWindow(object):
       [sg.Button('Start game!', font=('Helvetica', 22))],
       [self.graph]
     ]
+    # TODO: eventually, let the user train players by themselves
+    # self.training_layout = [[sg.Text(text="", font=("Helvetica", 22)),
+    #                       sg.Input(key='name', default_text='Human Player', font=("Helvetica", 22), size=(30, 1))],
+    #                      [sg.Text("How big a game (# rows) would you like to play?", font=("Helvetica", 22)),
+    #                       sg.Slider(key='num_layers', range=(3, 8), default_value=4, orientation='h',
+    #                                 font=('Helvetica', 16), size=(25, 22))],
+    #                      [sg.Text("Who plays first?", font=('Helvetica', 22)),
+    #                       sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=True,
+    #                                font=('Helvetica', 16)),
+    #                       sg.Radio(text='Computer', group_id="RADIO1", font=('Helvetica', 16))],
+    #                      [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
+    #                       sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
+    #                                                                    'Easy', 'Medium', 'Hard', 'Perfect'),
+    #                                     default_value='Same move every time',
+    #                                     font=('Helvetica', 16), size=(25, 22))],
+    #                      [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
+    #                               justification='right')],  # TODO: make point to actual win count
+    #                      [sg.Button('Start game!', font=('Helvetica', 22))]]
     self.intro_window = sg.Window('Game Setup', self.intro_layout, finalize=True)
     self.playing_window = sg.Window('Matchsticks', self.game_layout, finalize=True)
     self.playing_window.hide()
@@ -44,6 +62,11 @@ class MainWindow(object):
     # TODO: add types
 
   def run_intro(self):
+    """
+    Display the intro window, and record the user's inputs to set up a game.
+
+    :return:
+    """
     self.intro_window.un_hide()
     event, values = self.intro_window.read()
     print("event", event, values)
@@ -73,6 +96,12 @@ class MainWindow(object):
     self.run_play(a1)
 
   def run_play(self, a1: VisualArena):
+    """
+    Run a game window, showing computer moves and taking input from the user.
+
+    :param a1: the VisualArena of the active game
+    :return:
+    """
     self.playing_window['graph'].erase()
     self.playing_window.un_hide()
     self.gw.draw()
