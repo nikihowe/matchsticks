@@ -1,6 +1,5 @@
 # (c) Nikolaus Howe 2021
-
-import graphics as gfx
+from game_types import Line
 
 
 # NOTE: consider storing this somewhere for big games
@@ -23,7 +22,7 @@ def generate_allowed(num: int = 100) -> list[list[tuple[int, int]]]:
   return all_allowed
 
 
-def check_intersection(vertical_line: gfx.Line, other_line: gfx.Line) -> bool:
+def check_intersection(vertical_line: Line, other_line: Line) -> bool:
   """
   Check for intersection between two line segments.
 
@@ -31,21 +30,21 @@ def check_intersection(vertical_line: gfx.Line, other_line: gfx.Line) -> bool:
   :param other_line: The second line segment.
   :return: Whether or not they intersect.
   """
-  our_p1 = vertical_line.p1
-  our_x1 = our_p1.x
-  our_y1 = our_p1.y
+  our_p1 = vertical_line[0]
+  our_x1 = our_p1[0]
+  our_y1 = our_p1[1]
 
-  our_p2 = vertical_line.p2
+  our_p2 = vertical_line[1]
   # our_x2 = our_p2.x  # This is the same as x1, so don't need to calculate
-  our_y2 = our_p2.y
+  our_y2 = our_p2[1]
 
-  their_p1 = other_line.p1
-  their_x1 = their_p1.x
-  their_y1 = their_p1.y
+  their_p1 = other_line[0]
+  their_x1 = their_p1[0]
+  their_y1 = their_p1[1]
 
-  their_p2 = other_line.p2
-  their_x2 = their_p2.x
-  their_y2 = their_p2.y
+  their_p2 = other_line[1]
+  their_x2 = their_p2[0]
+  their_y2 = their_p2[1]
 
   # Check for vertical line. If vertical, then no intersection.
   if their_x2 == their_x1:

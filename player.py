@@ -313,6 +313,6 @@ class VisualHumanPlayer(HumanPlayer):
     :param game: the game
     :return: the move
     """
-    the_move = self.gw.get_human_move()
+    the_move = self.gw.get_and_play_human_move()
     # print("the human moved", the_move)
     return the_move

@@ -115,8 +115,8 @@ class VisualArena(Arena):
     while game_on:
       time.sleep(0.5)
 
-      print(self.gw.pyramid)
-      print()
+      # print(self.gw.pyramid)
+      # print()
 
       # print("the next player is", self.next_player_to_move.name)
       # Tell the human player to move
@@ -125,6 +125,10 @@ class VisualArena(Arena):
 
       # Get the active player to choose a move
       move = self.next_player_to_move.move(self.game)
+
+      if move is None:
+        self.switch_active_player()
+        break  # Game over. Whoever clicked the 'x' loses.
 
       # Tell game to do the move
       game_on = self.game.play_move(move)

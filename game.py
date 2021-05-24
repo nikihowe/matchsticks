@@ -1,5 +1,4 @@
 # (c) Nikolaus Howe 2021
-
 from typing import Optional, Union
 
 from utils import generate_allowed
@@ -117,3 +116,11 @@ class Game(object):
     else:
       self._state = list(map(lambda x: int(x * 2 + 1),
                              range(self._num_layers)))
+
+  def end(self) -> None:  # TODO: make this work with clicking on the 'x'
+    """
+    End the game prematurely.
+
+    :return:
+    """
+    self._state = None

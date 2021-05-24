@@ -1,18 +1,19 @@
 # (c) Nikolaus Howe 2021
+from __future__ import annotations
 
-import graphics as gfx
-import time
+import PySimpleGUI as sg
+
+# TODO: divide the game window into multiple files, and do better typing
 
 from game import Game
 from utils import check_intersection
-from game_types import Move
+from game_types import Move, Line, Point
 
 
 class GameWindow(object):
   def __init__(self,
                game: Game,
-               width: int = 450,
-               height: int = 450,
+               window: sg.Window,
                v_spacing: int = 40,
                h_spacing: int = 25,
                stick_length: int = 30,
@@ -29,15 +30,14 @@ class GameWindow(object):
     :param stick_width: how wide to draw matchsticks
     """
     self.game = game
-    self.win = gfx.GraphWin("Matchsticks", width, height)
-    self.win.setCoords(0, 0, 1, 1)
-    self.center = gfx.Point(width/2, height/2)
+    self.window = window
+    width, height = window['graph'].CanvasSize
+    self.center = (width/2, height/2)  # Because we set the coordinates to be a unit square
     self.v_spacing = v_spacing
     self.h_spacing = h_spacing
     self.stick_length = stick_length
     self.stick_width = stick_width
     self.pyramid = self.make_pyramid()
-    self.draw()
 
   def game_over(self, human_won: bool) -> None:
     """
@@ -46,17 +46,19 @@ class GameWindow(object):
     :param human_won: Whether or not the human won
     :return:
     """
-    end_text = gfx.Text(gfx.Point(self.center.x/2, 4/5*self.center.y), "")
-    end_text.setSize(36)
+    # end_text = gfx.Text(gfx.Point(self.center.x/2, 4/5*self.center.y), "")
+    # end_text.setSize(36)
     if human_won:
-      end_text.setText('You win!')
-      end_text.draw(self.win)
+      print("Human wins!")
+      # end_text.setText('You win!')
+      # end_text.draw(self.win)
     else:
-      end_text.setText('You lose!')
-      end_text.draw(self.win)
-    time.sleep(5)
+      print("Computer wins!")
+      # end_text.setText('You lose!')
+      # end_text.draw(self.win)
+    # time.sleep(5)
 
-  def make_pyramid(self) -> 'Pyramid':
+  def make_pyramid(self) -> Pyramid:
     """
     Construct the pyramid of rows of matchsticks of this game window.
 
@@ -90,13 +92,12 @@ class GameWindow(object):
     left_stick = self.pyramid.rows[layer].matchsticks[low_idx]
     right_stick = self.pyramid.rows[layer].matchsticks[high_idx]
 
-    crossing_line = gfx.Line(gfx.Point(left_stick.h_pos - self.h_spacing/4,
-                                       left_stick.v_pos),
-                             gfx.Point(right_stick.h_pos + self.h_spacing/4,
-                                       right_stick.v_pos))
-    crossing_line.setWidth(2)
-    crossing_line.setOutline('red')
-    crossing_line.draw(self.win)
+    crossing_line = ((left_stick.h_pos - self.h_spacing/4, left_stick.v_pos),
+                     (right_stick.h_pos + self.h_spacing/4, right_stick.v_pos))
+    # crossing_line.setWidth(2)
+    # crossing_line.setOutline('red')
+    self.window['graph'].draw_line(*crossing_line, color='red', width=2)
+    # crossing_line.draw(self.win)
 
     # Make the crossed off sticks red and remove them from the game
     for stick_idx in range(low_idx, high_idx + 1):
@@ -104,52 +105,75 @@ class GameWindow(object):
       stick.set_inactive()
       stick.draw(stick.v_pos, stick.h_pos)
 
-  def get_human_move(self) -> Move:
+    # Update the window immediately afterwards
+    self.window.refresh()
+
+  def get_human_move(self):
+    graph = self.window['graph']
+    dragging = False
+    start_point = end_point = current_line = None
+    while True:
+      event, values = self.window.read()
+      if event == "graph":
+        x, y = values["graph"]
+        if not dragging:
+          start_point = (x, y)
+          dragging = True
+        else:
+          end_point = (x, y)
+        if current_line:
+          graph.delete_figure(current_line)
+        if None not in (start_point, end_point):
+          current_line = graph.draw_line(start_point, end_point, color='red', width=2)
+      elif event == "graph+UP":
+        # Check the intersections. If they are good, play the move.
+        # Otherwise, fall through and keep trying to get a move.
+        intersections = self.pyramid.check_intersections((start_point, end_point))
+        if intersections and all([s.is_active for s in intersections]):
+          return start_point, end_point, intersections
+        else:
+          graph.delete_figure(current_line)
+          start_point, end_point = None, None
+          dragging = False
+          print("Please draw a line which satisfies the following:\n"
+                "- intersects at least one match\n"
+                "- stays entirely within one row\n"
+                "- doesn't cross any already crossed-off matches")
+      elif event == sg.WIN_CLOSED or event == 'Exit':
+        print("we're closing the window")
+        self.game.end()
+        self.window.close()
+        break
+
+  def get_and_play_human_move(self) -> Move:
     """
     Let the human click on the game window, and extract a move from the clicks.
 
     :return: the move
     """
-    point1 = self.win.getMouse()
-    point2 = self.win.getMouse()
+    move = self.get_human_move()
 
-    human_line = gfx.Line(point1, point2)
-
-    intersections = self.pyramid.check_intersections(human_line)
-
-    # If there are legal intersections, draw the line and update game logic.
-    # Otherwise, ask the player to draw a new line.
-    if intersections and all([s.is_active for s in intersections]):
-      # print("the intersections are", intersections)
-      # Draw the move
-      human_line.setWidth(2)
-      human_line.setOutline('red')
-      human_line.draw(self.win)
-      for stick in intersections:
-        stick.set_inactive()
-        stick.draw()
-
-      # Send the move to the game
-      row = intersections[0].layer
-      low = intersections[0].idx
-      high = intersections[-1].idx
-      move = row, low, high
-      # print("move was", move)
-
-      # Make the crossed off sticks red and remove them from the game
-      for stick_idx in range(low, high + 1):
-        stick = self.pyramid.rows[row-1].matchsticks[stick_idx-1]
-        stick.set_inactive()
-        stick.draw(stick.v_pos, stick.h_pos)
-
-      return move
-
+    if move is None:
+      return move  # game is over
     else:
-      print("Please draw a line which satisfies the following:\n"
-            "- intersects at least one match\n"
-            "- stays entirely within one row\n"
-            "- doesn't cross any already crossed-off matches")
-      return self.get_human_move()  # Let them try again
+      start_point, end_point, intersections = move
+
+    # self.window['graph'].draw_line(start_point, end_point, color='red', width=2)
+    for stick in intersections:
+      stick.set_inactive()
+      stick.draw()
+
+    # Update the window for faster animation
+    self.window.refresh()
+
+    # Send the move to the game
+    row = intersections[0].layer
+    low = intersections[0].idx
+    high = intersections[-1].idx
+    move = row, low, high
+    # print("move was", move)
+
+    return move
 
   def draw(self) -> None:
     self.pyramid.draw()
@@ -188,7 +212,7 @@ class Matchstick(object):
     """
     self.is_active = False
 
-  def draw(self, v_pos: int = None, h_pos: int = None) -> None:  # only uses these if not already drawn before
+  def draw(self, v_pos: float = None, h_pos: float = None) -> None:  # only uses these if not already drawn before
     """
     Draw this matchstick.
 
@@ -204,12 +228,19 @@ class Matchstick(object):
       if not h_pos:
         raise Exception('At first drawing, you need to provide v_pos and h_pos')
       self.h_pos = h_pos
-    self.line = gfx.Line(gfx.Point(self.h_pos, self.v_pos - self.gw.stick_length / 2),
-                         gfx.Point(self.h_pos, self.v_pos + self.gw.stick_length / 2))
-    self.line.setWidth(self.gw.stick_width)
-    if not self.is_active:
-      self.line.setOutline('red')
-    self.line.draw(self.gw.win)
+    self.line = ((self.h_pos, self.v_pos - self.gw.stick_length / 2),
+                 (self.h_pos, self.v_pos + self.gw.stick_length / 2))
+    # self.line.setWidth(self.gw.stick_width)
+    # if not self.is_active:
+    #   self.line.setOutline('red')
+    if self.is_active:
+      stick_colour = 'black'
+    else:
+      stick_colour = 'red'
+
+    self.gw.window['graph'].draw_line(*self.line, color=stick_colour, width=2)
+    # print("drew line at", self.line)
+    # self.line.draw(self.gw.win)
 
 
 class Row(object):
@@ -223,7 +254,7 @@ class Row(object):
     self.matchsticks = matchsticks
     self.gw = gw
 
-  def draw(self, v_pos: int) -> None:
+  def draw(self, v_pos: float) -> None:
     """
     Draw this row.
 
@@ -233,9 +264,9 @@ class Row(object):
     num_sticks = len(self.matchsticks)
     for i, stick in enumerate(self.matchsticks):
       stick.draw(v_pos=v_pos,
-                 h_pos=self.gw.center.y + (i - (num_sticks - 1) / 2) * self.gw.h_spacing)
+                 h_pos=self.gw.center[1] + (i - (num_sticks - 1) / 2) * self.gw.h_spacing)
 
-  def check_intersections(self, line: gfx.Line) -> list[Matchstick]:
+  def check_intersections(self, line: Line) -> list[Matchstick]:
     """
     Check for intersections of a given line segment with the matchsticks in this row.
 
@@ -269,7 +300,7 @@ class Pyramid(object):
     """
     num_rows = len(self.rows)
     for i, row in enumerate(self.rows):
-      row.draw(v_pos=self.gw.center.x + (i - (num_rows - 1) / 2) * self.gw.v_spacing)
+      row.draw(v_pos=self.gw.center[0] + (i - (num_rows - 1) / 2) * self.gw.v_spacing)
 
   def adjust(self, move: Move) -> None:
     """
@@ -297,7 +328,7 @@ class Pyramid(object):
         stick.layer = layer + 1
         stick.idx = i + 1
 
-  def check_intersections(self, line: gfx.Line) -> list[Matchstick]:
+  def check_intersections(self, line: Line) -> list[Matchstick]:
     """
     Check for intersections of a line segment with matchsticks in this pyramid.
     Note that all the intersections must be with the same row, and the line must
@@ -336,6 +367,41 @@ class Pyramid(object):
     return '\n'.join(to_ret)
 
 
-if __name__ == '__main__':
-  the_game_window = GameWindow(Game(5))
-  input()
+# if __name__ == '__main__':
+#   layout = [
+#     [sg.Button('Start game!', font=('Helvetica', 22))],
+#     [sg.Graph(canvas_size=(500, 500), key='graph',
+#               graph_bottom_left=(0, 500), graph_top_right=(500, 0),
+#               enable_events=True,  # mouse click events
+#               background_color='lightblue',
+#               drag_submits=True)]
+#   ]
+#   window = sg.Window('Canvas test', layout, finalize=True)
+#   graph = window['graph']
+#
+#   the_game_window = GameWindow(Game(5))
+#   # the_game_window.graph.draw_line((0.1, 0.1), (0.5, 0.5), color='black', width=2)
+#
+#   dragging = False
+#   start_point = end_point = current_line = None
+#   while True:
+#     event, values = window.read()
+#     if event == "graph":
+#       x, y = values["graph"]
+#       if not dragging:
+#         start_point = (x, y)
+#         dragging = True
+#       else:
+#         end_point = (x, y)
+#       if current_line:
+#           graph.delete_figure(current_line)
+#       if None not in (start_point, end_point):
+#         current_line = graph.draw_line(start_point, end_point, color='red', width=2)
+#     elif event == "graph+UP":
+#       # Tell the game to register the line
+#       the_game_window.get_human_move(start_point, end_point)
+#       graph.delete_figure(current_line)
+#       start_point, end_point = None, None
+#       dragging = False
+#     elif event == sg.WIN_CLOSED or event == 'Exit':
+#       break
