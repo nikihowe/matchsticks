@@ -3,7 +3,7 @@ import PySimpleGUI as sg
 
 from game_graphics.game_window import GameWindow
 from game import Game
-from player import VisualHumanPlayer, TrivialPlayer, RandomPlayer, PretrainedPlayer
+from player import VisualHumanPlayer, TrivialPlayer, RandomPlayer, PretrainedPlayer, PerfectPlayer
 from arena import VisualArena
 
 
@@ -80,6 +80,8 @@ class MainWindow(object):
       computer_player = TrivialPlayer()
     elif computer_player_type == 'Random move every time':
       computer_player = RandomPlayer()
+    elif computer_player_type == 'Perfect':
+      computer_player = PerfectPlayer()
     else:
       raise ValueError("that kind of player isn't ready yet")
 

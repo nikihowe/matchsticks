@@ -8,6 +8,7 @@ from overrides import overrides
 
 from game import Game
 from game_graphics.game_window import GameWindow
+from utils import get_nim_sum, imagine_move
 
 from game_types import Move
 
@@ -316,3 +317,40 @@ class VisualHumanPlayer(HumanPlayer):
     the_move = self.gw.get_and_play_human_move()
     # print("the human moved", the_move)
     return the_move
+
+
+class PerfectPlayer(Player):  # TODO: add tests for this player
+  @overrides
+  def move(self, game: Game) -> Move:
+    cur_nim_sum = get_nim_sum(game.get_state())
+    allowed_moves = game.get_allowed()
+    random.shuffle(allowed_moves)  # So it doesn't always play the same thing
+    if cur_nim_sum == 0:  # There is no good move to play, so choose one at random
+      return random.choice(allowed_moves)
+    else:
+      zero_nim_sum_move = None
+      for move in allowed_moves:
+        resulting_state = imagine_move(game.get_state(), move)
+        move_nim_sum = get_nim_sum(resulting_state)
+        # Check for game-ending move, and play immediately
+        if move_nim_sum == 1 and all(num == 1 for num in resulting_state):
+          return move
+        # Store zero move, but don't play, in case there is a game-ending move
+        elif move_nim_sum == 0 and zero_nim_sum_move is None:
+          zero_nim_sum_move = move
+
+      # Play the zero-preserving move, if present
+      if zero_nim_sum_move is not None:
+        return zero_nim_sum_move
+
+      # If we get here, it means that we didn't find an appropriate move,
+      # so play at random
+      print("I think we should never get here?")
+      print("state:", game.get_state())
+      print("nim sum:", cur_nim_sum)
+      return random.choice(allowed_moves)
+
+
+if __name__ == '__main__':
+  s = get_nim_sum((5, 1, 2, 2))
+  print(s)

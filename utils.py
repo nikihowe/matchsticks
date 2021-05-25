@@ -1,5 +1,5 @@
 # (c) Nikolaus Howe 2021
-from game_types import Line
+from game_types import Line, Move
 
 
 # NOTE: consider storing this somewhere for big games
@@ -71,6 +71,32 @@ def check_intersection(vertical_line: Line, other_line: Line) -> bool:
   )
 
   return they_intersect and line_is_pretty
+
+
+def get_nim_sum(state: tuple[int, ...]):
+  cur_sum = 0
+  for n in state:
+    cur_sum ^= n
+  return cur_sum
+
+
+def imagine_move(state: tuple[int, ...], move: Move) -> tuple[int, ...]:
+  cur_state = list(state)
+  layer_i, low_idx, high_idx = move
+
+  # Make the layer 0-indexed
+  layer_i -= 1
+
+  # Imagine performing move
+  active_layer = cur_state.pop(layer_i)
+  left_result = low_idx - 1
+  right_result = active_layer - high_idx
+  if left_result > 0:
+    cur_state.append(left_result)
+  if right_result > 0:
+    cur_state.append(right_result)
+
+  return tuple(cur_state)
 
 
 # def create_player(player_type: str) -> Player:

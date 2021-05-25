@@ -91,7 +91,7 @@ class Game(object):
     # Make the layer 0-indexed
     layer_i -= 1
 
-    # Perform move
+    # Perform move  # TODO: make this use the same code as imagine_move (no code duplication ideally)
     active_layer = self._state.pop(layer_i)
     left_result = low_idx - 1
     right_result = active_layer - high_idx

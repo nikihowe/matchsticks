@@ -38,6 +38,7 @@ class GameWindow(object):
     self.stick_length = stick_length
     self.stick_width = stick_width
     self.pyramid = self.make_pyramid()
+    self.gave_warning = False  # Only print the helper message once
 
   def game_over(self, human_won: bool) -> None:
     """
@@ -135,6 +136,9 @@ class GameWindow(object):
       elif event == "graph+UP":
         # Check the intersections. If they are good, play the move.
         # Otherwise, fall through and keep trying to get a move.
+        # print("the start and end point are", start_point, end_point)
+        if start_point is None or end_point is None:
+          continue
         intersections = self.pyramid.check_intersections((start_point, end_point))
         if intersections and all([s.is_active for s in intersections]):
           return start_point, end_point, intersections
@@ -142,10 +146,12 @@ class GameWindow(object):
           graph.delete_figure(current_line)
           start_point, end_point = None, None
           dragging = False
-          print("Please draw a line which satisfies the following:\n"
-                "- intersects at least one match\n"
-                "- stays entirely within one row\n"
-                "- doesn't cross any already crossed-off matches")
+          if not self.gave_warning:
+            print("Please draw a line which satisfies the following:\n"
+                  "- intersects at least one match\n"
+                  "- stays entirely within one row\n"
+                  "- doesn't cross any already crossed-off matches")
+            self.gave_warning = True
       elif event == sg.WIN_CLOSED or event == 'Exit':
         print("we're closing the window")
         self.game.end()
