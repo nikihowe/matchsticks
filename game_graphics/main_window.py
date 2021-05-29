@@ -33,8 +33,9 @@ class MainWindow(object):
                                   justification='right')],  # TODO: make point to actual win count
                          [sg.Button('Start game!', font=('Helvetica', 22))]]
     self.game_layout = [
-      [sg.Button('Start game!', font=('Helvetica', 22))],
-      [self.graph]
+      [self.graph],
+      # TODO: in the future, re-enable this button and connect it up with an exception which pauses or ends the game
+      # [sg.Button('Back to game setup', key='back', font=('Helvetica', 18))],
     ]
     # TODO: eventually, let the user train players by themselves
     # self.training_layout = [[sg.Text(text="", font=("Helvetica", 22)),
