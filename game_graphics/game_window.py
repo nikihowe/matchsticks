@@ -122,6 +122,7 @@ class GameWindow(object):
     start_point = end_point = current_line = None
     while True:
       event, values = self.window.read()
+      # print("the event was", event, values)
       if event == "graph":
         x, y = values["graph"]
         if not dragging:
@@ -140,6 +141,7 @@ class GameWindow(object):
         if start_point is None or end_point is None:
           continue
         intersections = self.pyramid.check_intersections((start_point, end_point))
+        print("the intersections are", intersections)
         if intersections and all([s.is_active for s in intersections]):
           return start_point, end_point, intersections
         else:
@@ -152,6 +154,10 @@ class GameWindow(object):
                   "- stays entirely within one row\n"
                   "- doesn't cross any already crossed-off matches")
             self.gave_warning = True
+      # TODO: make an exception for back and an exception for closed window
+      elif event == 'back':
+        print("going back to the setup window")
+        break
       elif event == sg.WIN_CLOSED or event == 'Exit':
         print("we're closing the window")
         self.game.end()
@@ -225,6 +231,7 @@ class Matchstick(object):
     :return:
     """
     self.is_active = False
+    self.gw.pyramid.inactive_sticks.append(self)
 
   def draw(self, v_pos: float = None, h_pos: float = None) -> None:  # only uses these if not already drawn before
     """
@@ -305,6 +312,7 @@ class Pyramid(object):
     """
     self.rows = rows
     self.gw = gw
+    self.inactive_sticks = []
 
   def draw(self) -> None:
     """
@@ -354,10 +362,17 @@ class Pyramid(object):
     :return: a list of matchsticks which intersect with the line segment
     """
     the_intersections = None
+
+    # First, check intersections with the inactive sticks
+    for stick in self.inactive_sticks:
+      if check_intersection(stick.line, line):
+        return []
+
+    # If there are none, then we're ok to check intersections with the active sticks
     for row in self.rows:
       row_intersections = row.check_intersections(line)
       if row_intersections:  # if it's not an empty list
-        # Only save if there are no intersections with previous rows.
+        # Only save if there are no intersections with other rows.
         # Otherwise, ask for the human to give a new line.
         if not the_intersections:
           the_intersections = row_intersections
