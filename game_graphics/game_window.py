@@ -95,10 +95,7 @@ class GameWindow(object):
 
     crossing_line = ((left_stick.h_pos - self.h_spacing/4, left_stick.v_pos),
                      (right_stick.h_pos + self.h_spacing/4, right_stick.v_pos))
-    # crossing_line.setWidth(2)
-    # crossing_line.setOutline('red')
     self.window['graph'].draw_line(*crossing_line, color='red', width=2)
-    # crossing_line.draw(self.win)
 
     # Make the crossed off sticks red and remove them from the game
     for stick_idx in range(low_idx, high_idx + 1):
@@ -178,7 +175,6 @@ class GameWindow(object):
     else:
       start_point, end_point, intersections = move
 
-    # self.window['graph'].draw_line(start_point, end_point, color='red', width=2)
     for stick in intersections:
       stick.set_inactive()
       stick.draw()
@@ -251,17 +247,12 @@ class Matchstick(object):
       self.h_pos = h_pos
     self.line = ((self.h_pos, self.v_pos - self.gw.stick_length / 2),
                  (self.h_pos, self.v_pos + self.gw.stick_length / 2))
-    # self.line.setWidth(self.gw.stick_width)
-    # if not self.is_active:
-    #   self.line.setOutline('red')
     if self.is_active:
       stick_colour = 'black'
     else:
       stick_colour = 'red'
 
     self.gw.window['graph'].draw_line(*self.line, color=stick_colour, width=2)
-    # print("drew line at", self.line)
-    # self.line.draw(self.gw.win)
 
 
 class Row(object):
@@ -297,7 +288,6 @@ class Row(object):
     intersections = []
     for stick in self.matchsticks:
       if check_intersection(stick.line, line):
-        # print("intersects with", stick)
         intersections.append(stick)
     return intersections
 
@@ -378,7 +368,6 @@ class Pyramid(object):
           the_intersections = row_intersections
         else:
           return []
-    # print("the intersections", the_intersections)
     return the_intersections
 
   def __repr__(self) -> str:
