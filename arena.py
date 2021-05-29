@@ -126,16 +126,17 @@ class VisualArena(Arena):
       # Get the active player to choose a move
       move = self.next_player_to_move.move(self.game)
 
-      if move is None:
-        self.switch_active_player()
-        break  # Game over. Whoever clicked the 'x' loses.
+      # if move is None:
+      #   self.switch_active_player()
+      #   break  # Game over. Whoever clicked the 'x' loses.
 
       # Tell game to do the move
       game_on = self.game.play_move(move)
 
       # If it's a learning player, give it a reward for this move (but not on its first move)
-      if isinstance(self.next_player_to_move, MCPlayer) and move_counter >= 2:
-        self.next_player_to_move.receive_reward(0.)
+      # if isinstance(self.next_player_to_move, MCPlayer) and move_counter >= 2:
+      #   self.next_player_to_move.receive_reward(0.)
+      # NOTE: no learning in the visual arena
 
       # Draw the move (only draw line if not a visual human player)
       if not self.next_player_to_move.is_visual_human():
