@@ -1,6 +1,7 @@
 # (c) Nikolaus Howe 2021
-
 import unittest
+import PySimpleGUI as sg
+
 from game import Game
 from player import TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer
 from game_graphics.game_window import GameWindow
@@ -134,7 +135,14 @@ class TestArena(unittest.TestCase):
 class TestGameWindow(unittest.TestCase):
   def test_computer_move_drawing(self):
     g1 = Game()
-    gw = GameWindow(game=g1)
+    graph = sg.Graph(canvas_size=(500, 500), key='graph',
+                     graph_bottom_left=(0, 500), graph_top_right=(500, 0),
+                     enable_events=True,  # mouse click events
+                     background_color='lightblue',
+                     drag_submits=True)
+    window = sg.Window('Matchsticks', [[graph]], finalize=True)
+    gw = GameWindow(game=g1, window=window)
+    gw.draw()
 
     layer = 4
     left_idx = 5
@@ -154,7 +162,13 @@ class TestGameWindow(unittest.TestCase):
 
   def test_pyramid_update(self):
     g1 = Game()
-    gw = GameWindow(game=g1)
+    graph = sg.Graph(canvas_size=(500, 500), key='graph',
+                     graph_bottom_left=(0, 500), graph_top_right=(500, 0),
+                     enable_events=True,  # mouse click events
+                     background_color='lightblue',
+                     drag_submits=True)
+    window = sg.Window('Matchsticks', [[graph]], finalize=True)
+    gw = GameWindow(game=g1, window=window)
 
     layer = 4
     left_idx = 5
