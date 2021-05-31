@@ -1,13 +1,12 @@
 # (c) Nikolaus Howe 2021
-from __future__ import annotations
-
 import PySimpleGUI as sg
 
-# TODO: divide the game window into multiple files, and do better typing
-
+from game_graphics.pyramid import Pyramid
+from game_graphics.row import Row
+from game_graphics.matchstick import Matchstick
 from game import Game
-from utils import check_intersection
-from game_types import Move, Line
+from utils import shorten_line
+from game_types import Move
 
 
 class GameWindow(object):
@@ -22,8 +21,6 @@ class GameWindow(object):
     A window in which a game of matchsticks can be drawn and played.
 
     :param game: the game to be drawn and played
-    :param width: window width
-    :param height: window height
     :param v_spacing: vertical space between rows of matchsticks
     :param h_spacing: horizontal space between matchsticks in the same row
     :param stick_length: how long to draw matchsticks
@@ -31,8 +28,8 @@ class GameWindow(object):
     """
     self.game = game
     self.window = window
-    width, height = window['graph'].CanvasSize
-    self.center = (width/2, height/2)  # Because we set the coordinates to be a unit square
+    self.width, self.height = window['graph'].CanvasSize
+    self.center = (self.width/2, self.height/2)  # Because we set the coordinates to be a unit square
     self.v_spacing = v_spacing
     self.h_spacing = h_spacing
     self.stick_length = stick_length
@@ -106,7 +103,7 @@ class GameWindow(object):
     # Update the window immediately afterwards
     self.window.refresh()
 
-  def get_human_move(self):
+  def get_human_move(self) -> list[Matchstick]:
     """
     Get a move from the human by listening for mouse clicks on the window.
     If a move is detected, check to make sure it is allowed. If it is,
@@ -140,7 +137,13 @@ class GameWindow(object):
         intersections = self.pyramid.check_intersections((start_point, end_point))
         print("the intersections are", intersections)
         if intersections and all([s.is_active for s in intersections]):
-          return start_point, end_point, intersections
+          # Shorten the line to make it more visually pleasing
+          start_point, end_point = shorten_line((start_point, end_point), intersections, self)
+          graph.delete_figure(current_line)
+          current_line = graph.draw_line(start_point, end_point, color='red', width=2)
+
+          # Return the intersections of this line
+          return intersections
         else:
           graph.delete_figure(current_line)
           start_point, end_point = None, None
@@ -168,13 +171,12 @@ class GameWindow(object):
 
     :return: the move
     """
-    move = self.get_human_move()
+    intersections = self.get_human_move()
 
-    if move is None:
-      return move  # game is over
-    else:
-      start_point, end_point, intersections = move
+    if intersections is None:
+      return None  # game is over TODO: fix this
 
+    # Update the colour of the crossed_off sticks
     for stick in intersections:
       stick.set_inactive()
       stick.draw()
@@ -188,201 +190,10 @@ class GameWindow(object):
     high = intersections[-1].idx
     move = row, low, high
     # print("move was", move)
-
     return move
 
   def draw(self) -> None:
     self.pyramid.draw()
-
-
-class Matchstick(object):
-  def __init__(self, layer: int, idx: int, gw: GameWindow) -> None:
-    """
-    A matchstick object to draw in the game window.
-
-    :param layer: which layer is the matchstick in (1-indexed)
-    :param idx: where in the layer is the matchstick (1-indexed)
-    :param gw: the game window
-    """
-    self.layer = layer
-    self.idx = idx
-    self.line = None  # hasn't been drawn yet
-    self.v_pos = None
-    self.h_pos = None
-    self.is_active = True
-    self.gw = gw
-
-  def __repr__(self) -> str:
-    """
-    String representation for printing.
-
-    :return: the string representation
-    """
-    return f'M({self.layer}, {self.idx})'
-
-  def set_inactive(self) -> None:
-    """
-    Make this matchstick inactive (when it's been crossed off).
-
-    :return:
-    """
-    self.is_active = False
-    self.gw.pyramid.inactive_sticks.append(self)
-
-  def draw(self, v_pos: float = None, h_pos: float = None) -> None:  # only uses these if not already drawn before
-    """
-    Draw this matchstick.
-
-    :param v_pos: the vertical position of the center of the stick
-    :param h_pos: the horizontal position of the center of the stick
-    :return:
-    """
-    if not self.v_pos:
-      if not v_pos:
-        raise Exception('At first drawing, you need to provide v_pos and h_pos')
-      self.v_pos = v_pos
-    if not self.h_pos:
-      if not h_pos:
-        raise Exception('At first drawing, you need to provide v_pos and h_pos')
-      self.h_pos = h_pos
-    self.line = ((self.h_pos, self.v_pos - self.gw.stick_length / 2),
-                 (self.h_pos, self.v_pos + self.gw.stick_length / 2))
-    if self.is_active:
-      stick_colour = 'black'
-    else:
-      stick_colour = 'red'
-
-    self.gw.window['graph'].draw_line(*self.line, color=stick_colour, width=2)
-
-
-class Row(object):
-  def __init__(self, matchsticks: list[Matchstick], gw: GameWindow) -> None:
-    """
-    A row of matchsticks.
-
-    :param matchsticks: a list of matchsticks
-    :param gw: the game window
-    """
-    self.matchsticks = matchsticks
-    self.gw = gw
-
-  def draw(self, v_pos: float) -> None:
-    """
-    Draw this row.
-
-    :param v_pos: vertical position of the center of all matchsticks in the row.
-    :return:
-    """
-    num_sticks = len(self.matchsticks)
-    for i, stick in enumerate(self.matchsticks):
-      stick.draw(v_pos=v_pos,
-                 h_pos=self.gw.center[1] + (i - (num_sticks - 1) / 2) * self.gw.h_spacing)
-
-  def check_intersections(self, line: Line) -> list[Matchstick]:
-    """
-    Check for intersections of a given line segment with the matchsticks in this row.
-
-    :param line: the line segment
-    :return: a list of matchsticks which the line segment intersects with
-    """
-    intersections = []
-    for stick in self.matchsticks:
-      if check_intersection(stick.line, line):
-        intersections.append(stick)
-    return intersections
-
-
-class Pyramid(object):
-  def __init__(self, rows: list[Row], gw: GameWindow) -> None:
-    """
-    A pyramid of rows of matchsticks.
-
-    :param rows: the rows of matchsticks
-    :param gw: the game window
-    """
-    self.rows = rows
-    self.gw = gw
-    self.inactive_sticks = []
-
-  def draw(self) -> None:
-    """
-    Draw the pyramid.
-
-    :return:
-    """
-    num_rows = len(self.rows)
-    for i, row in enumerate(self.rows):
-      row.draw(v_pos=self.gw.center[0] + (i - (num_rows - 1) / 2) * self.gw.v_spacing)
-
-  def adjust(self, move: Move) -> None:
-    """
-    Adjust the rows, and the matchsticks in the rows, to correspond to
-    the adjustment that happens to the state when a move is played.
-
-    :param move: the move which is played
-    :return:
-    """
-    layer, low_idx, high_idx = move
-    row = self.rows.pop(layer-1)
-    left_row_list = row.matchsticks[:low_idx-1]
-    if left_row_list:
-      left_row = Row(left_row_list, self.gw)
-      self.rows.append(left_row)
-    right_row_list = row.matchsticks[high_idx:]
-    if right_row_list:
-      right_row = Row(right_row_list, self.gw)
-      self.rows.append(right_row)
-    self.rows.sort(key=lambda x: len(x.matchsticks))
-
-    # Now adjust all the sticks
-    for layer, row in enumerate(self.rows):
-      for i, stick in enumerate(row.matchsticks):
-        stick.layer = layer + 1
-        stick.idx = i + 1
-
-  def check_intersections(self, line: Line) -> list[Matchstick]:
-    """
-    Check for intersections of a line segment with matchsticks in this pyramid.
-    Note that all the intersections must be with the same row, and the line must
-    be drawn within the vertical limits of the row, and the line cannot intersect
-    any already crossed-off matchsticks. In the case of a violation of these
-    requirements, the player is asked to try again.
-
-    :param line: the line segment
-    :return: a list of matchsticks which intersect with the line segment
-    """
-    the_intersections = None
-
-    # First, check intersections with the inactive sticks
-    for stick in self.inactive_sticks:
-      if check_intersection(stick.line, line):
-        return []
-
-    # If there are none, then we're ok to check intersections with the active sticks
-    for row in self.rows:
-      row_intersections = row.check_intersections(line)
-      if row_intersections:  # if it's not an empty list
-        # Only save if there are no intersections with other rows.
-        # Otherwise, ask for the human to give a new line.
-        if not the_intersections:
-          the_intersections = row_intersections
-        else:
-          return []
-    return the_intersections
-
-  def __repr__(self) -> str:
-    """
-    String representation for printing.
-
-    :return: the string representation
-    """
-    to_ret = []
-    for row in self.rows:
-      line = []
-      for matchstick in row.matchsticks:
-        line.append(str(matchstick))
-      to_ret.append(' '.join(line))
-    return '\n'.join(to_ret)
 
 
 # if __name__ == '__main__':
