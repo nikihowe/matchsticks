@@ -3,7 +3,7 @@ import unittest
 import PySimpleGUI as sg
 
 from game import Game
-from player import TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer
+from player import TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer, PerfectPlayer
 from game_graphics.game_window import GameWindow
 from arena import Arena
 from dojo import Dojo
@@ -62,12 +62,11 @@ class TestPlayer(unittest.TestCase):
     p1 = TrivialPlayer()
     self.assertEqual(p1.move(game=g1), (1, 1, 1))
 
-  # Make sure a learning agent plays properly in certain situations,
-  # after only 10_000 games of training
-  # NOTE: failing (a) test(s) doesn't mean it isn't training, just that it isn't very good after 10_000
-  def test_MC_agent_10_000(self):
+  # Make sure a learning agent plays properly in certain situations, after 50_000 games of training
+  # NOTE: failing (a) test(s) doesn't mean it isn't training, just that it isn't very good after 50_000
+  def test_MC_agent_50_000(self):
     p1 = MCPlayer('Alice')
-    p2 = RandomPlayer()  # TODO: change into optimal player later
+    p2 = RandomPlayer()
     d1 = Dojo(p1, p2)
     d1.train_players(num_games=50_000, num_layers=2)
     # print("after training", p1.Q)
@@ -84,11 +83,11 @@ class TestPlayer(unittest.TestCase):
 
   def test_specific_train(self):
     p1 = MCPlayer('Alice')
-    p2 = RandomPlayer()  # TODO: change to optimal player later
+    p2 = RandomPlayer()
     d1 = Dojo(p1, p2)
     position = [4]
     d1.drill_position(num_games=50_000, position=position)
-    # print(p1.Q)
+    # print("after training", p1.Q)
 
     g1 = Game()
     g1.reset(position)
