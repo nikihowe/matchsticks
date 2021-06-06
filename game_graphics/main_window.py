@@ -17,7 +17,7 @@ def make_intro_window(last_settings: Optional[dict] = None):
                                font=('Helvetica', 16), size=(25, 22))],
                     [sg.Text("Who plays first?", font=('Helvetica', 22)),
                      sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=True, font=('Helvetica', 16)),
-                     sg.Radio(text='Computer', group_id="RADIO1", font=('Helvetica', 16))],
+                     sg.Radio(text='Computer', group_id="RADIO1", default=False, font=('Helvetica', 16))],
                     [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
                      sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
                                                                   'Easy', 'Medium', 'Hard', 'Perfect'),
@@ -33,7 +33,8 @@ def make_intro_window(last_settings: Optional[dict] = None):
                     [sg.Text("Who plays first?", font=('Helvetica', 22)),
                      sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=last_settings['human_first'],
                               font=('Helvetica', 16)),
-                     sg.Radio(text='Computer', group_id="RADIO1", font=('Helvetica', 16))],
+                     sg.Radio(text='Computer', group_id="RADIO1", default=(not last_settings['human_first']),
+                              font=('Helvetica', 16))],
                     [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
                      sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
                                                                   'Easy', 'Medium', 'Hard', 'Perfect'),
@@ -96,7 +97,7 @@ class MainWindow(object):
     g1 = Game(int(values['num_layers']))
     self.gw = GameWindow(game=g1, window=self.playing_window)
 
-    human_player = VisualHumanPlayer(self.gw, values['name'])
+    human_player = VisualHumanPlayer(self.gw, "human")
 
     computer_player_type = values['computer_player']
     if computer_player_type == 'Same move every time':
