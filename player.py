@@ -322,6 +322,7 @@ class VisualHumanPlayer(HumanPlayer):
 class PerfectPlayer(Player):  # TODO: add tests for this player
   @overrides
   def move(self, game: Game) -> Move:
+    # TODO: docstring
     cur_nim_sum = get_nim_sum(game.get_state())
     allowed_moves = game.get_allowed()
     random.shuffle(allowed_moves)  # So it doesn't always play the same thing
