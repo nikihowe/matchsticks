@@ -5,7 +5,7 @@ from game_graphics.pyramid import Pyramid
 from game_graphics.row import Row
 from game_graphics.matchstick import Matchstick
 from game import Game
-from utils import shorten_line
+from utils import shorten_line, BackButtonException, ClosedWindowException
 from game_types import Move
 
 
@@ -154,15 +154,12 @@ class GameWindow(object):
                   "- stays entirely within one row\n"
                   "- doesn't cross any already crossed-off matches")
             self.gave_warning = True
-      # TODO: make an exception for back and an exception for closed window
       elif event == 'back':
-        print("going back to the setup window")
-        break
+        print("clicked back button, going back")
+        raise BackButtonException
       elif event == sg.WIN_CLOSED or event == 'Exit':
-        print("we're closing the window")
-        self.game.end()
-        self.window.close()
-        break
+        print("clicked on the x, closing the window")
+        raise ClosedWindowException
 
   def get_and_play_human_move(self) -> Move:
     """
