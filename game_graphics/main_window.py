@@ -1,76 +1,98 @@
 # (c) Nikolaus Howe 2021
 import PySimpleGUI as sg
 
+from typing import Optional
+
 from game_graphics.game_window import GameWindow
 from game import Game
 from player import VisualHumanPlayer, TrivialPlayer, RandomPlayer, PretrainedPlayer, PerfectPlayer
 from arena import VisualArena
+from utils import BackButtonException, ClosedWindowException
+
+
+def make_intro_window(last_settings: Optional[dict] = None):
+  if last_settings is None:
+    intro_layout = [[sg.Text("How big a game (# rows) would you like to play?", font=("Helvetica", 22)),
+                     sg.Slider(key='num_layers', range=(3, 8), default_value=4, orientation='h',
+                               font=('Helvetica', 16), size=(25, 22))],
+                    [sg.Text("Who plays first?", font=('Helvetica', 22)),
+                     sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=True, font=('Helvetica', 16)),
+                     sg.Radio(text='Computer', group_id="RADIO1", font=('Helvetica', 16))],
+                    [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
+                     sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
+                                                                  'Easy', 'Medium', 'Hard', 'Perfect'),
+                                   default_value='Same move every time',
+                                   font=('Helvetica', 16), size=(25, 22))],
+                    [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
+                             justification='right')],  # TODO: make point to actual win count
+                    [sg.Button('Start game!', font=('Helvetica', 22))]]
+  else:
+    intro_layout = [[sg.Text("How big a game (# rows) would you like to play?", font=("Helvetica", 22)),
+                     sg.Slider(key='num_layers', range=(3, 8), default_value=last_settings['num_layers'],
+                               orientation='h', font=('Helvetica', 16), size=(25, 22))],
+                    [sg.Text("Who plays first?", font=('Helvetica', 22)),
+                     sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=last_settings['human_first'],
+                              font=('Helvetica', 16)),
+                     sg.Radio(text='Computer', group_id="RADIO1", font=('Helvetica', 16))],
+                    [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
+                     sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
+                                                                  'Easy', 'Medium', 'Hard', 'Perfect'),
+                                   default_value=last_settings['computer_player'],
+                                   font=('Helvetica', 16), size=(25, 22))],
+                    [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
+                             justification='right')],  # TODO: make point to actual win count
+                    [sg.Button('Start game!', font=('Helvetica', 22))]]
+
+  return sg.Window('Game Setup', intro_layout, finalize=True)
+
+
+def make_playing_window():
+  graph = sg.Graph(canvas_size=(500, 500), key='graph',
+                   graph_bottom_left=(0, 500), graph_top_right=(500, 0),
+                   enable_events=True,  # mouse click events
+                   background_color='lightblue',
+                   drag_submits=True)
+  game_layout = [
+    [graph],
+    [sg.Button('Quit game', key='back', font=('Helvetica', 18))],
+  ]
+  return sg.Window('Matchsticks', game_layout, finalize=True)
 
 
 class MainWindow(object):
+  # TODO: idea: let the user train the agents by themself?
+  # TODO: implement a better learning algorithm?
 
   def __init__(self):
-    self.graph = sg.Graph(canvas_size=(500, 500), key='graph',
-                          graph_bottom_left=(0, 500), graph_top_right=(500, 0),
-                          enable_events=True,  # mouse click events
-                          background_color='lightblue',
-                          drag_submits=True)
     self.gw = None
-    self.intro_layout = [[sg.Text(text="What's your name?", font=("Helvetica", 22)),
-                          sg.Input(key='name', default_text='Human Player', font=("Helvetica", 22), size=(30, 1))],
-                         [sg.Text("How big a game (# rows) would you like to play?", font=("Helvetica", 22)),
-                          sg.Slider(key='num_layers', range=(3, 8), default_value=4, orientation='h',
-                                    font=('Helvetica', 16), size=(25, 22))],
-                         [sg.Text("Who plays first?", font=('Helvetica', 22)),
-                          sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=True, font=('Helvetica', 16)),
-                          sg.Radio(text='Computer', group_id="RADIO1", font=('Helvetica', 16))],
-                         [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
-                          sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
-                                                                  'Easy', 'Medium', 'Hard', 'Perfect'),
-                                        default_value='Same move every time',
-                                        font=('Helvetica', 16), size=(25, 22))],
-                         [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
-                                  justification='right')],  # TODO: make point to actual win count
-                         [sg.Button('Start game!', font=('Helvetica', 22))]]
-    self.game_layout = [
-      [self.graph],
-      # TODO: in the future, re-enable this button and connect it up with an exception which pauses or ends the game
-      # [sg.Button('Back to game setup', key='back', font=('Helvetica', 18))],
-    ]
-    # TODO: eventually, let the user train players by themselves
-    # self.training_layout = [[sg.Text(text="", font=("Helvetica", 22)),
-    #                       sg.Input(key='name', default_text='Human Player', font=("Helvetica", 22), size=(30, 1))],
-    #                      [sg.Text("How big a game (# rows) would you like to play?", font=("Helvetica", 22)),
-    #                       sg.Slider(key='num_layers', range=(3, 8), default_value=4, orientation='h',
-    #                                 font=('Helvetica', 16), size=(25, 22))],
-    #                      [sg.Text("Who plays first?", font=('Helvetica', 22)),
-    #                       sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=True,
-    #                                font=('Helvetica', 16)),
-    #                       sg.Radio(text='Computer', group_id="RADIO1", font=('Helvetica', 16))],
-    #                      [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
-    #                       sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
-    #                                                                    'Easy', 'Medium', 'Hard', 'Perfect'),
-    #                                     default_value='Same move every time',
-    #                                     font=('Helvetica', 16), size=(25, 22))],
-    #                      [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
-    #                               justification='right')],  # TODO: make point to actual win count
-    #                      [sg.Button('Start game!', font=('Helvetica', 22))]]
-    self.intro_window = sg.Window('Game Setup', self.intro_layout, finalize=True)
-    self.playing_window = sg.Window('Matchsticks', self.game_layout, finalize=True)
-    self.playing_window.hide()
+    self.last_settings = None
+    self.intro_window = None
+    self.playing_window = None
     self.run_intro()
 
     # TODO: add types
 
-  def run_intro(self):
+  def run_intro(self) -> None:
     """
     Display the intro window, and record the user's inputs to set up a game.
 
     :return:
     """
-    self.intro_window.un_hide()
+    self.intro_window = make_intro_window(last_settings=self.last_settings)
+    self.playing_window = make_playing_window()
+    self.playing_window.hide()
+
     event, values = self.intro_window.read()
     print("event", event, values)
+
+    if event == sg.WIN_CLOSED or event == 'Exit':
+      print("closing the window!")
+      self.intro_window.close()
+      return
+
+    # Save the settings so that they are the default for next time
+    self.last_settings = values
+
     g1 = Game(int(values['num_layers']))
     self.gw = GameWindow(game=g1, window=self.playing_window)
 
@@ -108,9 +130,16 @@ class MainWindow(object):
     self.playing_window['graph'].erase()
     self.playing_window.un_hide()
     self.gw.draw()
-    a1.play()
 
-    self.playing_window.hide()
+    try:
+      a1.play()
+    except BackButtonException as _:
+      print("We caught a CWCError, so we're closing the window and returning to main menu")
+    except ClosedWindowException as _:
+      print("the window was closed, so we don't need to close the window")
+      print("but we will anyway")
+
+    self.playing_window.close()
     self.run_intro()
 
     # g1 = Game(int(values['num_layers']))
