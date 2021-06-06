@@ -10,6 +10,20 @@ from typing import Optional
 from game_types import Point, Line, Move
 
 
+class BackButtonException(Exception):
+  """
+  An exception that is called when the back button is clicked
+  """
+  pass
+
+
+class ClosedWindowException(Exception):
+  """
+  An exception that is called when the game window is closed with the "x" in the top bar
+  """
+  pass
+
+
 # NOTE: consider storing this somewhere for big games
 def generate_allowed(num: int = 100) -> list[list[tuple[int, int]]]:
   """
@@ -199,6 +213,10 @@ def chop_y(line: Line, low_y: float, high_y: float) -> Line:
     line = (x2, y2), (x1, y1)
 
   a, b = get_line_coefficients(line)
+
+  if a == 0.:
+    return line
+
   new_low_y = max(low_y, line[0][1])
   new_high_y = min(high_y, line[1][1])
 
