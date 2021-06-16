@@ -1,6 +1,7 @@
 # (c) Nikolaus Howe 2021
 
 from typing import Optional
+from tqdm import trange
 
 from arena import Arena
 from player import Player, MCPlayer
@@ -38,7 +39,7 @@ class Dojo(object):
     """
     starting_position = g1.get_state()
 
-    for i in range(num_games):
+    for i in trange(num_games):
       # Make each player start half the time
       if i % 2:
         p1 = self.p1
@@ -90,3 +91,20 @@ class Dojo(object):
       return self.p1
     else:
       return self.p2
+
+
+if __name__ == "__main__":
+  # d = Dojo()
+  # d.train_players(10_000, 4)
+  # easy = d.get_player()
+  # easy.save_q("trained_agents/easy.player")
+  #
+  # d = Dojo()
+  # d.train_players(50_000, 5)
+  # med = d.get_player()
+  # med.save_q("trained_agents/medium.player")
+
+  d = Dojo()
+  d.train_players(1_000_000, 5)
+  hard = d.get_player()
+  hard.save_q("trained_agents/hard.player")
