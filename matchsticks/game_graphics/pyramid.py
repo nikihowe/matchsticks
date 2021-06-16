@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import typing
 if typing.TYPE_CHECKING:
-  from game_graphics.game_window import GameWindow
+  from matchsticks.game_graphics.game_window import GameWindow
 
-from utils import check_intersection
-from game_graphics.row import Row
-from game_graphics.matchstick import Matchstick
-from game_types import Move, Line
+from matchsticks.utils import check_intersection
+from matchsticks.game_graphics.row import Row
+from matchsticks.game_graphics.matchstick import Matchstick
+from matchsticks.game_types import Move, Line
 
 
 class Pyramid(object):

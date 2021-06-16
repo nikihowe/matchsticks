@@ -2,11 +2,11 @@
 import unittest
 import PySimpleGUI as sg
 
-from game import Game
-from player import TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer, PerfectPlayer
-from game_graphics.game_window import GameWindow
-from arena import Arena
-from dojo import Dojo
+from matchsticks.game import Game
+from matchsticks.player import TrivialPlayer, RandomPlayer, MCPlayer, PretrainedPlayer
+from matchsticks.game_graphics.game_window import GameWindow
+from matchsticks.arena import Arena
+from matchsticks.dojo import Dojo
 
 
 class TestGameBasics(unittest.TestCase):

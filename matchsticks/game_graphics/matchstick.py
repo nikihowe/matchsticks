@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import typing
 if typing.TYPE_CHECKING:
-  from game_graphics.game_window import GameWindow
+  from matchsticks.game_graphics.game_window import GameWindow
 
 
 class Matchstick(object):

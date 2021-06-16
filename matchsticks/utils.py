@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import typing
 if typing.TYPE_CHECKING:
-  from game_graphics.game_window import Matchstick, GameWindow
+  from matchsticks.game_graphics.game_window import Matchstick, GameWindow
 
 from typing import Optional
 
-from game_types import Point, Line, Move
+from matchsticks.game_types import Point, Line, Move
 
 
 class BackButtonException(Exception):

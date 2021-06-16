@@ -6,7 +6,7 @@ from overrides import overrides
 
 from player import Player, MCPlayer, PretrainedPlayer, HumanPlayer, VisualHumanPlayer
 from game import Game
-from game_graphics.game_window import GameWindow
+from matchsticks.game_graphics.game_window import GameWindow
 
 
 class Arena(object):

@@ -6,11 +6,11 @@ import random
 from abc import ABC, abstractmethod
 from overrides import overrides
 
-from game import Game
-from game_graphics.game_window import GameWindow
+from matchsticks.game import Game
+from matchsticks.game_graphics.game_window import GameWindow
 from utils import get_nim_sum, imagine_move
 
-from game_types import Move
+from matchsticks.game_types import Move
 
 
 class Player(ABC):
@@ -225,6 +225,7 @@ class PretrainedPlayer(Player):
     except Exception as e:
       print(f"Couldn't load file {q_filename}.")
       print("The exception was", e)
+      raise SystemExit
 
   def policy(self, game: Game) -> Move:
     """

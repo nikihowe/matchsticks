@@ -1,12 +1,12 @@
 # (c) Nikolaus Howe 2021
 import PySimpleGUI as sg
 
-from game_graphics.pyramid import Pyramid
-from game_graphics.row import Row
-from game_graphics.matchstick import Matchstick
-from game import Game
-from utils import shorten_line, BackButtonException, ClosedWindowException
-from game_types import Move
+from matchsticks.game_graphics.pyramid import Pyramid
+from matchsticks.game_graphics.row import Row
+from matchsticks.game_graphics.matchstick import Matchstick
+from matchsticks.game import Game
+from matchsticks.utils import shorten_line, BackButtonException, ClosedWindowException
+from matchsticks.game_types import Move
 
 
 class GameWindow(object):
