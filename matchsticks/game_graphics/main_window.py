@@ -3,11 +3,11 @@ import PySimpleGUI as sg
 
 from typing import Optional
 
-from game_graphics.game_window import GameWindow
-from game import Game
-from player import VisualHumanPlayer, TrivialPlayer, RandomPlayer, PretrainedPlayer, PerfectPlayer
-from arena import VisualArena
-from utils import BackButtonException, ClosedWindowException
+from matchsticks.game_graphics.game_window import GameWindow
+from matchsticks.game import Game
+from matchsticks.player import VisualHumanPlayer, RandomPlayer, PretrainedPlayer, PerfectPlayer
+from matchsticks.arena import VisualArena
+from matchsticks.utils import BackButtonException, ClosedWindowException
 
 
 def make_intro_window(last_settings: Optional[dict] = None):
@@ -19,9 +19,9 @@ def make_intro_window(last_settings: Optional[dict] = None):
                      sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=True, font=('Helvetica', 16)),
                      sg.Radio(text='Computer', group_id="RADIO1", default=False, font=('Helvetica', 16))],
                     [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
-                     sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
-                                                                  'Easy', 'Medium', 'Hard', 'Perfect'),
-                                   default_value='Same move every time',
+                     sg.InputCombo(key='computer_player',
+                                   values=('Plays randomly', 'Easy', 'Medium', 'Hard', 'Perfect'),
+                                   default_value='Easy',
                                    font=('Helvetica', 16), size=(25, 22))],
                     [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
                              justification='right')],  # TODO: make point to actual win count
@@ -36,8 +36,8 @@ def make_intro_window(last_settings: Optional[dict] = None):
                      sg.Radio(text='Computer', group_id="RADIO1", default=(not last_settings['human_first']),
                               font=('Helvetica', 16))],
                     [sg.Text("How hard an opponent would you like to play against?", font=('Helvetica', 22)),
-                     sg.InputCombo(key='computer_player', values=('Same move every time', 'Random move every time',
-                                                                  'Easy', 'Medium', 'Hard', 'Perfect'),
+                     sg.InputCombo(key='computer_player',
+                                   values=('Plays randomly', 'Easy', 'Medium', 'Hard', 'Perfect'),
                                    default_value=last_settings['computer_player'],
                                    font=('Helvetica', 16), size=(25, 22))],
                     [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
@@ -100,10 +100,14 @@ class MainWindow(object):
     human_player = VisualHumanPlayer(self.gw, "human")
 
     computer_player_type = values['computer_player']
-    if computer_player_type == 'Same move every time':
-      computer_player = TrivialPlayer()
-    elif computer_player_type == 'Random move every time':
+    if computer_player_type == 'Plays randomly':
       computer_player = RandomPlayer()
+    elif computer_player_type == "Easy":
+      computer_player = PretrainedPlayer("trained_agents/easy.player")
+    elif computer_player_type == "Medium":
+      computer_player = PretrainedPlayer("trained_agents/medium.player")
+    elif computer_player_type == "Hard":
+      computer_player = PretrainedPlayer("trained_agents/hard.player")
     elif computer_player_type == 'Perfect':
       computer_player = PerfectPlayer()
     else:
