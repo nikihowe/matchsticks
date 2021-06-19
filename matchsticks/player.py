@@ -1,16 +1,15 @@
 # (c) Nikolaus Howe 2021
-
 import numpy as np
 import pickle as pkl
 import random
+
 from abc import ABC, abstractmethod
 from overrides import overrides
 
 from matchsticks.game import Game
 from matchsticks.game_graphics.game_window import GameWindow
-from utils import get_nim_sum, imagine_move
-
 from matchsticks.game_types import Move
+from matchsticks.utils import get_nim_sum, imagine_move
 
 
 class Player(ABC):

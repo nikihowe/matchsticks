@@ -1,12 +1,11 @@
-# (c) Nikolaus Howe
-
+# (c) 2021 Nikolaus Howe
 import time
 
 from overrides import overrides
 
-from player import Player, MCPlayer, PretrainedPlayer, HumanPlayer, VisualHumanPlayer
-from game import Game
+from matchsticks.game import Game
 from matchsticks.game_graphics.game_window import GameWindow
+from matchsticks.player import HumanPlayer, MCPlayer, Player, PretrainedPlayer,  VisualHumanPlayer
 
 
 class Arena(object):

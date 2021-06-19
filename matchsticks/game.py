@@ -1,8 +1,8 @@
 # (c) Nikolaus Howe 2021
 from typing import Optional, Union
 
-from utils import generate_allowed
-from game_types import Move
+from matchsticks.game_types import Move
+from matchsticks.utils import generate_allowed
 
 
 class Game(object):

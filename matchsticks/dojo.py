@@ -1,11 +1,10 @@
 # (c) Nikolaus Howe 2021
-
-from typing import Optional
 from tqdm import trange
+from typing import Optional
 
 from arena import Arena
-from player import Player, MCPlayer
 from game import Game
+from player import MCPlayer, Player
 
 
 class Dojo(object):

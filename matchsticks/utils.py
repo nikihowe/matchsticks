@@ -7,7 +7,7 @@ if typing.TYPE_CHECKING:
 
 from typing import Optional
 
-from matchsticks.game_types import Point, Line, Move
+from matchsticks.game_types import Line, Move, Point
 
 
 class BackButtonException(Exception):

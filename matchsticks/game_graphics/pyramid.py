@@ -5,10 +5,10 @@ import typing
 if typing.TYPE_CHECKING:
   from matchsticks.game_graphics.game_window import GameWindow
 
-from matchsticks.utils import check_intersection
-from matchsticks.game_graphics.row import Row
 from matchsticks.game_graphics.matchstick import Matchstick
-from matchsticks.game_types import Move, Line
+from matchsticks.game_graphics.row import Row
+from matchsticks.game_types import Line, Move
+from matchsticks.utils import check_intersection
 
 
 class Pyramid(object):

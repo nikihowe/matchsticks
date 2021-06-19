@@ -3,10 +3,10 @@ import PySimpleGUI as sg
 
 from typing import Optional
 
-from matchsticks.game_graphics.game_window import GameWindow
-from matchsticks.game import Game
-from matchsticks.player import VisualHumanPlayer, RandomPlayer, PretrainedPlayer, PerfectPlayer
 from matchsticks.arena import VisualArena
+from matchsticks.game import Game
+from matchsticks.game_graphics.game_window import GameWindow
+from matchsticks.player import PerfectPlayer, PretrainedPlayer, RandomPlayer, VisualHumanPlayer
 from matchsticks.utils import BackButtonException, ClosedWindowException
 
 
@@ -23,8 +23,8 @@ def make_intro_window(last_settings: Optional[dict] = None):
                                    values=('Plays randomly', 'Easy', 'Medium', 'Hard', 'Perfect'),
                                    default_value='Easy',
                                    font=('Helvetica', 16), size=(25, 22))],
-                    [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
-                             justification='right')],  # TODO: make point to actual win count
+                    # [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
+                    #          justification='right')],  # NOTE: this hasn't been set up yet
                     [sg.Button('Start game!', font=('Helvetica', 22))]]
   else:
     intro_layout = [[sg.Text("How big a game (# rows) would you like to play?", font=("Helvetica", 22)),
@@ -40,8 +40,8 @@ def make_intro_window(last_settings: Optional[dict] = None):
                                    values=('Plays randomly', 'Easy', 'Medium', 'Hard', 'Perfect'),
                                    default_value=last_settings['computer_player'],
                                    font=('Helvetica', 16), size=(25, 22))],
-                    [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
-                             justification='right')],  # TODO: make point to actual win count
+                    # [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
+                    #          justification='right')],  # NOTE: this hasn't been set up yet
                     [sg.Button('Start game!', font=('Helvetica', 22))]]
 
   return sg.Window('Game Setup', intro_layout, finalize=True)
@@ -64,14 +64,16 @@ class MainWindow(object):
   # TODO: idea: let the user train the agents by themself?
   # TODO: implement a better learning algorithm?
 
-  def __init__(self):
+  def __init__(self) -> None:
+    """
+    The first window that the user sees. They can use it to set up a game.
+
+    """
     self.gw = None
     self.last_settings = None
     self.intro_window = None
     self.playing_window = None
     self.run_intro()
-
-    # TODO: add types
 
   def run_intro(self) -> None:
     """
