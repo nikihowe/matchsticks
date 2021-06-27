@@ -13,8 +13,8 @@ from matchsticks.utils import BackButtonException, ClosedWindowException
 def make_intro_window(last_settings: Optional[dict] = None):
   if last_settings is None:
     intro_layout = [[sg.Text("How big a game (# rows) would you like to play?", font=("Helvetica", 22)),
-                     sg.Slider(key='num_layers', range=(3, 8), default_value=4, orientation='h',
-                               font=('Helvetica', 16), size=(25, 22))],
+                     sg.Slider(key='num_layers', range=(3, 6), default_value=4, orientation='h',
+                               font=('Helvetica', 16), size=(14, 22))],
                     [sg.Text("Who plays first?", font=('Helvetica', 22)),
                      sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=True, font=('Helvetica', 16)),
                      sg.Radio(text='Computer', group_id="RADIO1", default=False, font=('Helvetica', 16))],
@@ -22,14 +22,14 @@ def make_intro_window(last_settings: Optional[dict] = None):
                      sg.InputCombo(key='computer_player',
                                    values=('Plays randomly', 'Easy', 'Medium', 'Hard', 'Perfect'),
                                    default_value='Easy',
-                                   font=('Helvetica', 16), size=(25, 22))],
+                                   font=('Helvetica', 16), size=(14, 22))],
                     # [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
                     #          justification='right')],  # NOTE: this hasn't been set up yet
                     [sg.Button('Start game!', font=('Helvetica', 22))]]
   else:
     intro_layout = [[sg.Text("How big a game (# rows) would you like to play?", font=("Helvetica", 22)),
-                     sg.Slider(key='num_layers', range=(3, 8), default_value=last_settings['num_layers'],
-                               orientation='h', font=('Helvetica', 16), size=(25, 22))],
+                     sg.Slider(key='num_layers', range=(3, 6), default_value=last_settings['num_layers'],
+                               orientation='h', font=('Helvetica', 16), size=(14, 22))],
                     [sg.Text("Who plays first?", font=('Helvetica', 22)),
                      sg.Radio(key='human_first', text='Human', group_id="RADIO1", default=last_settings['human_first'],
                               font=('Helvetica', 16)),
@@ -39,7 +39,7 @@ def make_intro_window(last_settings: Optional[dict] = None):
                      sg.InputCombo(key='computer_player',
                                    values=('Plays randomly', 'Easy', 'Medium', 'Hard', 'Perfect'),
                                    default_value=last_settings['computer_player'],
-                                   font=('Helvetica', 16), size=(25, 22))],
+                                   font=('Helvetica', 16), size=(14, 22))],
                     # [sg.Text(f'Your win count against this difficulty: {5}', font=('Helvetica', 16),
                     #          justification='right')],  # NOTE: this hasn't been set up yet
                     [sg.Button('Start game!', font=('Helvetica', 22))]]
@@ -48,8 +48,8 @@ def make_intro_window(last_settings: Optional[dict] = None):
 
 
 def make_playing_window():
-  graph = sg.Graph(canvas_size=(500, 500), key='graph',
-                   graph_bottom_left=(0, 500), graph_top_right=(500, 0),
+  graph = sg.Graph(canvas_size=(300, 300), key='graph',
+                   graph_bottom_left=(0, 300), graph_top_right=(300, 0),
                    enable_events=True,  # mouse click events
                    background_color='lightblue',
                    drag_submits=True)
