@@ -181,11 +181,11 @@ class MCPlayer(Player):
       current_return = discount * current_return + self.rewards[i]
 
       # Check whether this state-action pair happened earlier
-      # NOTE: in matchsticks, this can never happen
+      # NOTE: in matchsticks, this can never happen, so we can safely comment it out
       # if (word, move) in self.history[:i]:
       #   continue
 
-      # Running average
+      # Running average, sort of
       self.Q[word][move] = self.Q[word][move] * 0.9 + 0.1 * current_return
 
     # End the episode by clearing histories
