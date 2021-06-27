@@ -105,11 +105,11 @@ class MainWindow(object):
     if computer_player_type == 'Plays randomly':
       computer_player = RandomPlayer()
     elif computer_player_type == "Easy":
-      computer_player = PretrainedPlayer("trained_agents/easy.player")
+      computer_player = PretrainedPlayer("matchsticks/trained_agents/easy.player")
     elif computer_player_type == "Medium":
-      computer_player = PretrainedPlayer("trained_agents/medium.player")
+      computer_player = PretrainedPlayer("matchsticks/trained_agents/medium.player")
     elif computer_player_type == "Hard":
-      computer_player = PretrainedPlayer("trained_agents/hard.player")
+      computer_player = PretrainedPlayer("matchsticks/trained_agents/hard.player")
     elif computer_player_type == 'Perfect':
       computer_player = PerfectPlayer()
     else:
