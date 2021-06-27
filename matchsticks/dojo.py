@@ -2,9 +2,9 @@
 from tqdm import trange
 from typing import Optional
 
-from arena import Arena
-from game import Game
-from player import MCPlayer, Player
+from matchsticks.arena import Arena
+from matchsticks.game import Game
+from matchsticks.player import MCPlayer, Player
 
 
 class Dojo(object):
@@ -93,15 +93,15 @@ class Dojo(object):
 
 
 if __name__ == "__main__":
-  # d = Dojo()
-  # d.train_players(10_000, 4)
-  # easy = d.get_player()
-  # easy.save_q("trained_agents/easy.player")
-  #
-  # d = Dojo()
-  # d.train_players(50_000, 5)
-  # med = d.get_player()
-  # med.save_q("trained_agents/medium.player")
+  d = Dojo()
+  d.train_players(5_000, 4)
+  easy = d.get_player()
+  easy.save_q("trained_agents/easy.player")
+
+  d = Dojo()
+  d.train_players(20_000, 4)
+  med = d.get_player()
+  med.save_q("trained_agents/medium.player")
 
   d = Dojo()
   d.train_players(1_000_000, 5)
